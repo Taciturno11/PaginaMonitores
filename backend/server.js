@@ -1,13 +1,44 @@
 // Carga las variables de entorno
+const os = require('os');
 require('dotenv').config(); 
 const cors = require('cors');
 const express = require('express');
 const sql = require('mssql');
+const http = require('http');
+const { Server } = require('socket.io');
 
 const app = express();
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: "*", // Permitir todos los orígenes (para desarrollo)
+    methods: ["GET", "POST"]
+  }
+});
+
 app.use(cors());
 
 const PORT = process.env.PORT; 
+
+// Estado de los monitores en memoria
+const monitores = new Map();
+// Map estructura: dni -> { dni, nombre, rol, estado, conectadoDesde, tiempoEnLlamada, tiempoInactivo, socketId, llamadaActual }
+
+// Función para obtener las IPs locales
+function getLocalIps() {
+  const interfaces = os.networkInterfaces();
+  const ips = [];
+      // Itera sobre todas las interfaces de red (Ethernet, Wi-Fi, etc.)
+      for (const name in interfaces) {
+        for (const iface of interfaces[name]) {
+            // Solo queremos IPv4, no direcciones internas (loopback)
+            if (iface.family === 'IPv4' && !iface.internal) {
+                ips.push(iface.address);
+            }
+        }
+    }
+    return ips;
+}
 
 // Configuración de la base de datos SQL Server
 const dbConfig = {
@@ -188,7 +219,189 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
-// Inicia el servidor
-app.listen(PORT, () => {
-  console.log(`🚀 Servidor de Backend corriendo en http://localhost:${PORT}`);
+// =====================================================
+// SOCKET.IO - Manejo de conexiones en tiempo real
+// =====================================================
+
+io.on('connection', (socket) => {
+  console.log(`🔌 Cliente conectado: ${socket.id}`);
+
+  // Evento: Monitor/Jefa se conecta y envía sus datos
+  socket.on('usuario_conectado', (data) => {
+    const { dni, nombre, rol } = data;
+    
+    console.log(`👤 Usuario conectado: ${nombre} (${rol}) - DNI: ${dni}`);
+    
+    // Guardar/actualizar información del monitor
+    monitores.set(dni, {
+      dni,
+      nombre,
+      rol,
+      estado: 'conectado', // Estados: conectado, en_llamada, desconectado
+      conectadoDesde: Date.now(),
+      tiempoEnLlamada: 0,
+      tiempoInactivo: 0,
+      socketId: socket.id,
+      llamadaActual: null,
+      ultimaActualizacion: Date.now()
+    });
+
+    // Unir a sala según el rol
+    if (rol === 'jefa') {
+      socket.join('sala_jefa');
+      console.log('👑 Jefa unida a sala_jefa');
+    } else {
+      socket.join('sala_monitores');
+      console.log('👤 Monitor unido a sala_monitores');
+    }
+
+    // Enviar lista actualizada de monitores a la jefa
+    emitirEstadoMonitoresAJefa();
+  });
+
+  // Evento: Monitor inicia monitoreo de una llamada
+  socket.on('iniciar_monitoreo', (data) => {
+    const { dni, llamadaId } = data;
+    
+    const monitor = monitores.get(dni);
+    if (monitor) {
+      monitor.estado = 'en_llamada';
+      monitor.llamadaActual = {
+        id: llamadaId,
+        inicioMonitoreo: Date.now()
+      };
+      monitor.ultimaActualizacion = Date.now();
+      
+      console.log(`▶️ Monitor ${monitor.nombre} inició monitoreo de llamada ${llamadaId}`);
+      
+      // Notificar a la jefa
+      emitirEstadoMonitoresAJefa();
+    }
+  });
+
+  // Evento: Monitor finaliza monitoreo de una llamada
+  socket.on('finalizar_monitoreo', (data) => {
+    const { dni, tiempoTotal } = data;
+    
+    const monitor = monitores.get(dni);
+    if (monitor && monitor.llamadaActual) {
+      const tiempoMonitoreo = Math.floor((Date.now() - monitor.llamadaActual.inicioMonitoreo) / 1000);
+      
+      monitor.estado = 'conectado';
+      monitor.tiempoEnLlamada += tiempoMonitoreo;
+      monitor.llamadaActual = null;
+      monitor.ultimaActualizacion = Date.now();
+      
+      console.log(`⏹️ Monitor ${monitor.nombre} finalizó monitoreo (${tiempoMonitoreo}s)`);
+      
+      // Notificar a la jefa
+      emitirEstadoMonitoresAJefa();
+    }
+  });
+
+  // Evento: Actualización periódica de tiempo (cada segundo)
+  socket.on('actualizar_tiempo', (data) => {
+    const { dni } = data;
+    
+    const monitor = monitores.get(dni);
+    if (monitor) {
+      monitor.ultimaActualizacion = Date.now();
+      
+      // Calcular tiempos
+      const tiempoConectado = Math.floor((Date.now() - monitor.conectadoDesde) / 1000);
+      
+      if (monitor.estado === 'conectado') {
+        // Tiempo inactivo = tiempo conectado - tiempo en llamada
+        monitor.tiempoInactivo = tiempoConectado - monitor.tiempoEnLlamada;
+      }
+    }
+  });
+
+  // Evento: Desconexión
+  socket.on('disconnect', () => {
+    console.log(`🔌 Cliente desconectado: ${socket.id}`);
+    
+    // Buscar el monitor por socketId
+    for (const [dni, monitor] of monitores.entries()) {
+      if (monitor.socketId === socket.id) {
+        monitor.estado = 'desconectado';
+        monitor.ultimaActualizacion = Date.now();
+        
+        console.log(`👤 Monitor desconectado: ${monitor.nombre}`);
+        
+        // Notificar a la jefa
+        emitirEstadoMonitoresAJefa();
+        break;
+      }
+    }
+  });
 });
+
+// Función para enviar estado de monitores a la jefa
+function emitirEstadoMonitoresAJefa() {
+  const estadoMonitores = Array.from(monitores.values()).map(monitor => {
+    const ahora = Date.now();
+    const tiempoConectado = Math.floor((ahora - monitor.conectadoDesde) / 1000);
+    
+    let tiempoEnLlamada = monitor.tiempoEnLlamada;
+    let tiempoInactivo = monitor.tiempoInactivo;
+    let tiempoDesconectado = 0;
+    
+    // Si está en llamada actualmente, sumar el tiempo actual
+    if (monitor.estado === 'en_llamada' && monitor.llamadaActual) {
+      const tiempoLlamadaActual = Math.floor((ahora - monitor.llamadaActual.inicioMonitoreo) / 1000);
+      tiempoEnLlamada += tiempoLlamadaActual;
+    }
+    
+    // Si está conectado pero no en llamada, es tiempo inactivo
+    if (monitor.estado === 'conectado') {
+      tiempoInactivo = tiempoConectado - monitor.tiempoEnLlamada;
+    }
+    
+    // Si está desconectado, calcular tiempo desconectado
+    if (monitor.estado === 'desconectado') {
+      tiempoDesconectado = Math.floor((ahora - monitor.ultimaActualizacion) / 1000);
+    }
+    
+    return {
+      dni: monitor.dni,
+      nombre: monitor.nombre,
+      rol: monitor.rol,
+      estado: monitor.estado,
+      tiempoEnLlamada,
+      tiempoInactivo,
+      tiempoDesconectado,
+      llamadaActual: monitor.llamadaActual?.id || null
+    };
+  });
+  
+  // Emitir solo a la sala de la jefa
+  io.to('sala_jefa').emit('estado_monitores', estadoMonitores);
+}
+
+// Actualizar estado cada segundo
+setInterval(() => {
+  emitirEstadoMonitoresAJefa();
+}, 1000);
+
+// =====================================================
+// FIN SOCKET.IO
+// =====================================================
+
+// Inicia el servidor
+const HOST = '0.0.0.0';
+// Inicia el servidor
+server.listen(PORT, HOST, () => {
+    console.log(`\n--- Accesible a través de ---`);
+    
+    // Imprime localhost (siempre funciona)
+    console.log(`👉 http://localhost:${PORT}`);
+    
+    // Imprime las IPs detectadas dinámicamente
+    const localIps = getLocalIps();
+    localIps.forEach(ip => {
+        console.log(`👉 http://${ip}:${PORT}`);
+    });
+  
+    console.log(`-----------------------------`);
+  });

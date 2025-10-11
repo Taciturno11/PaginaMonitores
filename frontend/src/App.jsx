@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import './App.css'
 import Login from './Login'
+import Dashboard from './Dashboard'
+import { io } from 'socket.io-client'
 
 function App() {
   const [usuario, setUsuario] = useState(null);
@@ -24,7 +26,8 @@ function App() {
   const [tiempoMonitoreo, setTiempoMonitoreo] = useState(0);
   const [tiempoFinal, setTiempoFinal] = useState(null);
 
-  const API_URL = 'http://localhost:3210';
+  const API_URL = import.meta.env.VITE_API_URL;
+  const [socket, setSocket] = useState(null);
 
   // Verificar si hay usuario en localStorage al cargar
   useEffect(() => {
@@ -34,13 +37,58 @@ function App() {
     }
   }, []);
 
+  // Conectar Socket.IO cuando hay usuario
+  useEffect(() => {
+    if (usuario) {
+      // Crear conexión Socket.IO
+      const newSocket = io(API_URL, {
+        reconnection: true,
+        reconnectionAttempts: 5,
+        reconnectionDelay: 1000
+      });
+
+      newSocket.on('connect', () => {
+        console.log('✅ Conectado a Socket.IO');
+        
+        // Emitir evento de conexión con datos del usuario
+        newSocket.emit('usuario_conectado', {
+          dni: usuario.dni,
+          nombre: usuario.nombre,
+          rol: usuario.rol
+        });
+      });
+
+      newSocket.on('disconnect', () => {
+        console.log('❌ Desconectado de Socket.IO');
+      });
+
+      // Guardar socket en estado
+      setSocket(newSocket);
+
+      // Actualizar tiempo cada segundo
+      const interval = setInterval(() => {
+        if (newSocket && usuario) {
+          newSocket.emit('actualizar_tiempo', { dni: usuario.dni });
+        }
+      }, 1000);
+
+      // Cleanup al desmontar
+      return () => {
+        clearInterval(interval);
+        if (newSocket) {
+          newSocket.disconnect();
+        }
+      };
+    }
+  }, [usuario, API_URL]);
+
   // Cargar opciones de filtros al iniciar
   useEffect(() => {
     fetch(`${API_URL}/api/opciones-filtros`)
       .then(res => res.json())
       .then(data => setOpciones(data))
       .catch(err => console.error('Error al cargar opciones:', err));
-  }, []);
+  }, [API_URL]);
 
   // Contador inicial (5, 4, 3, 2, 1)
   useEffect(() => {
@@ -54,8 +102,16 @@ function App() {
       setContadorInicial(null);
       setMonitoreoActivo(true);
       setTiempoMonitoreo(0);
+      
+      // Emitir evento Socket.IO de inicio de monitoreo
+      if (socket && usuario && llamada) {
+        socket.emit('iniciar_monitoreo', {
+          dni: usuario.dni,
+          llamadaId: llamada.ID_Corto || llamada.ID_Largo
+        });
+      }
     }
-  }, [contadorInicial]);
+  }, [contadorInicial, usuario, llamada, socket]);
 
   // Cronómetro de monitoreo activo
   useEffect(() => {
@@ -111,6 +167,14 @@ function App() {
   const finalizarMonitoreo = () => {
     setMonitoreoActivo(false);
     setTiempoFinal(tiempoMonitoreo);
+    
+    // Emitir evento Socket.IO de finalización
+    if (socket && usuario) {
+      socket.emit('finalizar_monitoreo', {
+        dni: usuario.dni,
+        tiempoTotal: tiempoMonitoreo
+      });
+    }
   };
 
   const formatearTiempo = (segundos) => {
@@ -161,8 +225,13 @@ function App() {
         </div>
       </header>
 
-      <div className="content-layout">
-        <div className="filtros-container">
+      {usuario.rol === 'jefa' ? (
+        // Vista de la jefa: Dashboard con monitores
+        <Dashboard socket={socket} />
+      ) : (
+        // Vista del monitor: Búsqueda de llamadas
+        <div className="content-layout">
+          <div className="filtros-container">
           <h2>Filtros de Búsqueda</h2>
           
           <div className="filtros-grid">
@@ -398,6 +467,7 @@ function App() {
           )}
         </div>
       </div>
+      )}
     </div>
   )
 }
