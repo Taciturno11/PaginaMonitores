@@ -121,8 +121,8 @@ header p {
 
 .filtro-item {
   display: flex;
-  width: 12rem;
   flex-direction: column;
+  min-width: 0;
 }
 
 .filtro-item label {
@@ -130,15 +130,18 @@ header p {
   margin-bottom: 5px;
   color: #555;
   font-size: 0.85rem;
+  white-space: nowrap;
 }
 
 .filtro-item input,
 .filtro-item select {
+  width: 100%;
   padding: 8px;
   border: 2px solid #e0e0e0;
   border-radius: 6px;
   font-size: 13px;
   transition: border-color 0.3s;
+  box-sizing: border-box;
 }
 
 .filtro-item input:focus,
@@ -199,7 +202,7 @@ header p {
 
 .contador-inicial {
   background: white;
-  padding: 40px;
+  padding: 20px 30px;
   border-radius: 10px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   text-align: center;
@@ -208,14 +211,14 @@ header p {
 }
 
 .contador-numero {
-  font-size: 5rem;
+  font-size: 3rem;
   font-weight: bold;
   color: #667eea;
-  margin-bottom: 10px;
+  margin-bottom: 5px;
 }
 
 .contador-inicial p {
-  font-size: 1.2rem;
+  font-size: 0.95rem;
   color: #666;
   margin: 0;
 }
@@ -225,7 +228,7 @@ header p {
     transform: scale(1);
   }
   50% {
-    transform: scale(1.05);
+    transform: scale(1.02);
   }
 }
 
@@ -416,11 +419,11 @@ header p {
   }
   
   .cronometro-tiempo {
-    font-size: 2rem;
+    font-size: 1.8rem;
   }
   
   .contador-numero {
-    font-size: 4rem;
+    font-size: 2.5rem;
   }
 }
 

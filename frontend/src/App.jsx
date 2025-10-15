@@ -363,13 +363,8 @@ function App() {
               
               <div className="info-grid">
             <div className="info-item">
-              <strong>ID Corto:</strong>
-              <span>{llamada.ID_Corto}</span>
-            </div>
-
-            <div className="info-item">
               <strong>ID Largo:</strong>
-              <span>{llamada.ID_Largo}</span>
+              <span>{llamada.ID_Largo || 'N/A'}</span>
             </div>
 
             <div className="info-item">
@@ -384,7 +379,11 @@ function App() {
 
             <div className="info-item">
               <strong>Hora:</strong>
-              <span>{llamada.Hora}</span>
+              <span>
+                {llamada.Hora 
+                  ? llamada.Hora.split('T')[1]?.substring(0, 8) || llamada.Hora
+                  : 'N/A'}
+              </span>
             </div>
 
             <div className="info-item">
@@ -455,11 +454,6 @@ function App() {
             <div className="info-item">
               <strong>Usuario Llamada Origen:</strong>
               <span>{llamada.Usuario_Llamada_Origen}</span>
-            </div>
-
-            <div className="info-item">
-              <strong>Reporte ID:</strong>
-              <span>{llamada.ReporteID}</span>
             </div>
           </div>
         </div>

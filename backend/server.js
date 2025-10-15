@@ -77,6 +77,9 @@ app.post('/api/llamada-aleatoria', async (req, res) => {
       SELECT TOP 1 *
       FROM [Partner].[dbo].[Reporte_Llamadas_Detalle]
       WHERE 1=1
+        AND ID_Largo IS NOT NULL
+        AND ID_Largo != ''
+        AND Duracion >= 60
     `;
     
     const params = [];
