@@ -5,6 +5,7 @@ import Dashboard from './Dashboard'
 import Sidebar from './Sidebar'
 import HistorialPersonal from './HistorialPersonal'
 import HistorialGeneral from './HistorialGeneral'
+import FormularioEvaluacion from './FormularioEvaluacion'
 import { io } from 'socket.io-client'
 
 function App() {
@@ -30,6 +31,7 @@ function App() {
   const [tiempoMonitoreo, setTiempoMonitoreo] = useState(0);
   const [tiempoFinal, setTiempoFinal] = useState(null);
   const [inicioMonitoreo, setInicioMonitoreo] = useState(null);
+  const [mostrarFormulario, setMostrarFormulario] = useState(false);
 
   const API_URL = import.meta.env.VITE_API_URL;
   const [socket, setSocket] = useState(null);
@@ -170,10 +172,12 @@ function App() {
     }
   };
 
-  const finalizarMonitoreo = async () => {
+  const finalizarMonitoreo = () => {
     setMonitoreoActivo(false);
-    setTiempoFinal(tiempoMonitoreo);
-    
+    setMostrarFormulario(true);
+  };
+
+  const handleGuardarEvaluacion = async (evaluacion) => {
     const fechaHoraFin = new Date();
     
     // Emitir evento Socket.IO de finalización
@@ -193,10 +197,11 @@ function App() {
           llamada: llamada,
           fechaHoraInicio: inicioMonitoreo.toISOString(),
           fechaHoraFin: fechaHoraFin.toISOString(),
-          tiempoSegundos: tiempoMonitoreo
+          tiempoSegundos: tiempoMonitoreo,
+          evaluacion: evaluacion
         };
 
-        console.log('📤 Guardando monitoreo:', payload);
+        console.log('📤 Guardando monitoreo con evaluación:', payload);
 
         const response = await fetch(`${API_URL}/api/guardar-monitoreo`, {
           method: 'POST',
@@ -210,13 +215,22 @@ function App() {
 
         if (response.ok) {
           console.log('✅ Monitoreo guardado en BD:', data);
+          setTiempoFinal(tiempoMonitoreo);
+          setMostrarFormulario(false);
         } else {
           console.error('❌ Error al guardar monitoreo:', data);
+          alert('Error al guardar la evaluación');
         }
       } catch (error) {
         console.error('❌ Error al guardar monitoreo:', error);
+        alert('Error al guardar la evaluación');
       }
     }
+  };
+
+  const handleCancelarEvaluacion = () => {
+    setMostrarFormulario(false);
+    setMonitoreoActivo(true); // Volver al monitoreo activo
   };
 
   const formatearTiempo = (segundos) => {
@@ -350,7 +364,7 @@ function App() {
           </button>
 
           {/* Contador y cronómetro debajo de los filtros */}
-          {llamada && (
+          {llamada && !mostrarFormulario && (
             <div className="monitoreo-controles">
               {/* Contador inicial */}
               {contadorInicial !== null && (
@@ -379,6 +393,16 @@ function App() {
                 </div>
               )}
             </div>
+          )}
+
+          {/* Formulario de evaluación en el espacio del cronómetro */}
+          {llamada && mostrarFormulario && (
+            <FormularioEvaluacion
+              llamada={llamada}
+              tiempoMonitoreo={formatearTiempo(tiempoMonitoreo)}
+              onGuardar={handleGuardarEvaluacion}
+              onCancelar={handleCancelarEvaluacion}
+            />
           )}
         </div>
 
@@ -552,6 +576,7 @@ function App() {
           {renderModulo()}
         </div>
       </div>
+
     </div>
   )
 }
