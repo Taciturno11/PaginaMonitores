@@ -3,6 +3,8 @@ import './App.css'
 import Login from './Login'
 import Dashboard from './Dashboard'
 import Sidebar from './Sidebar'
+import HistorialPersonal from './HistorialPersonal'
+import HistorialGeneral from './HistorialGeneral'
 import { io } from 'socket.io-client'
 
 function App() {
@@ -185,25 +187,31 @@ function App() {
     // Guardar en base de datos
     if (inicioMonitoreo && llamada && usuario) {
       try {
+        const payload = {
+          dniMonitor: usuario.dni,
+          nombreMonitor: usuario.nombre,
+          llamada: llamada,
+          fechaHoraInicio: inicioMonitoreo.toISOString(),
+          fechaHoraFin: fechaHoraFin.toISOString(),
+          tiempoSegundos: tiempoMonitoreo
+        };
+
+        console.log('📤 Guardando monitoreo:', payload);
+
         const response = await fetch(`${API_URL}/api/guardar-monitoreo`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({
-            dniMonitor: usuario.dni,
-            nombreMonitor: usuario.nombre,
-            llamada: llamada,
-            fechaHoraInicio: inicioMonitoreo.toISOString(),
-            fechaHoraFin: fechaHoraFin.toISOString(),
-            tiempoSegundos: tiempoMonitoreo
-          })
+          body: JSON.stringify(payload)
         });
 
+        const data = await response.json();
+
         if (response.ok) {
-          console.log('✅ Monitoreo guardado en BD');
+          console.log('✅ Monitoreo guardado en BD:', data);
         } else {
-          console.error('❌ Error al guardar monitoreo');
+          console.error('❌ Error al guardar monitoreo:', data);
         }
       } catch (error) {
         console.error('❌ Error al guardar monitoreo:', error);
@@ -248,7 +256,7 @@ function App() {
       if (moduloActivo === 'dashboard') {
         return <Dashboard socket={socket} />;
       } else if (moduloActivo === 'historial-general') {
-        return <div className="modulo-placeholder">📈 Módulo de Historial General (próximamente)</div>;
+        return <HistorialGeneral />;
       }
     }
     
@@ -256,7 +264,7 @@ function App() {
     if (usuario.rol === 'monitor') {
       if (moduloActivo === 'monitoreo') {
         // Renderizar el módulo de monitoreo (el código actual)
-        return (
+  return (
           <div className="content-layout">
           <div className="filtros-container">
           <h2>Filtros de Búsqueda</h2>
@@ -388,109 +396,120 @@ function App() {
               <div className="llamada-detalle">
                 <h2>📞 Detalle de la Llamada</h2>
               
-              <div className="info-grid">
-            <div className="info-item">
-              <strong>ID Largo:</strong>
-              <span>{llamada.ID_Largo || 'N/A'}</span>
-            </div>
+                <div className="detalle-lineas">
+                  <div className="detalle-seccion">
+                    <h3>📋 Información de la Llamada</h3>
+                    <div className="detalle-linea">
+                      <span className="icono">🆔</span>
+                      <span className="label">ID:</span>
+                      <span className="valor">{llamada.ID_Largo || 'N/A'}</span>
+                    </div>
+                    <div className="detalle-linea">
+                      <span className="icono">📱</span>
+                      <span className="label">Número:</span>
+                      <span className="valor">{llamada.Numero}</span>
+                    </div>
+                    <div className="detalle-linea">
+                      <span className="icono">📅</span>
+                      <span className="label">Fecha:</span>
+                      <span className="valor">{new Date(llamada.Fecha).toLocaleDateString()}</span>
+                    </div>
+                    <div className="detalle-linea">
+                      <span className="icono">🕐</span>
+                      <span className="label">Hora:</span>
+                      <span className="valor">
+                        {llamada.Hora 
+                          ? llamada.Hora.split('T')[1]?.substring(0, 8) || llamada.Hora
+                          : 'N/A'}
+                      </span>
+                    </div>
+                    <div className="detalle-linea">
+                      <span className="icono">⏱️</span>
+                      <span className="label">Duración:</span>
+                      <span className="valor">{llamada.Duracion}s</span>
+                    </div>
+                  </div>
 
-            <div className="info-item">
-              <strong>Número:</strong>
-              <span>{llamada.Numero}</span>
-            </div>
+                  <div className="detalle-seccion">
+                    <h3>👤 Agente</h3>
+                    <div className="detalle-linea">
+                      <span className="icono">👨‍💼</span>
+                      <span className="label">Nombre:</span>
+                      <span className="valor">{llamada.NombreCompletoAgente} <span className="dni-parentesis">({llamada.DNIEmpleado})</span></span>
+                    </div>
+                    <div className="detalle-linea">
+                      <span className="icono">💼</span>
+                      <span className="label">Cargo:</span>
+                      <span className="valor">{llamada.Cargo}</span>
+                    </div>
+                    <div className="detalle-linea">
+                      <span className="icono">✅</span>
+                      <span className="label">Estado:</span>
+                      <span className="valor badge-estado">{llamada.EstadoEmpleado}</span>
+                    </div>
+                    <div className="detalle-linea">
+                      <span className="icono">🏢</span>
+                      <span className="label">Modalidad:</span>
+                      <span className="valor">{llamada.Modalidad}</span>
+                    </div>
+                    <div className="detalle-linea">
+                      <span className="icono">⏰</span>
+                      <span className="label">Jornada:</span>
+                      <span className="valor">{llamada.Jornada}</span>
+                    </div>
+                  </div>
 
-            <div className="info-item">
-              <strong>Fecha:</strong>
-              <span>{new Date(llamada.Fecha).toLocaleDateString()}</span>
-            </div>
+                  <div className="detalle-seccion">
+                    <h3>🎯 Campaña y Gestión</h3>
+                    <div className="detalle-linea">
+                      <span className="icono">🎯</span>
+                      <span className="label">Campaña:</span>
+                      <span className="valor">{llamada.Campaña_Agente}</span>
+                    </div>
+                    <div className="detalle-linea">
+                      <span className="icono">📞</span>
+                      <span className="label">Cola:</span>
+                      <span className="valor">{llamada.Cola}</span>
+                    </div>
+                    <div className="detalle-linea">
+                      <span className="icono">👔</span>
+                      <span className="label">Supervisor:</span>
+                      <span className="valor">{llamada.NombreCompletoSupervisor}</span>
+                    </div>
+                    <div className="detalle-linea">
+                      <span className="icono">👤</span>
+                      <span className="label">Usuario Origen:</span>
+                      <span className="valor">{llamada.Usuario_Llamada_Origen}</span>
+                    </div>
+                  </div>
 
-            <div className="info-item">
-              <strong>Hora:</strong>
-              <span>
-                {llamada.Hora 
-                  ? llamada.Hora.split('T')[1]?.substring(0, 8) || llamada.Hora
-                  : 'N/A'}
-              </span>
-            </div>
-
-            <div className="info-item">
-              <strong>Duración:</strong>
-              <span>{llamada.Duracion}</span>
-            </div>
-
-            <div className="info-item">
-              <strong>Cola:</strong>
-              <span>{llamada.Cola}</span>
-            </div>
-
-            <div className="info-item">
-              <strong>Agente:</strong>
-              <span>{llamada.NombreCompletoAgente}</span>
-            </div>
-
-            <div className="info-item">
-              <strong>DNI Empleado:</strong>
-              <span>{llamada.DNIEmpleado}</span>
-            </div>
-
-            <div className="info-item">
-              <strong>Cargo:</strong>
-              <span>{llamada.Cargo}</span>
-            </div>
-
-            <div className="info-item">
-              <strong>Estado Empleado:</strong>
-              <span>{llamada.EstadoEmpleado}</span>
-            </div>
-
-            <div className="info-item">
-              <strong>Modalidad:</strong>
-              <span>{llamada.Modalidad}</span>
-            </div>
-
-            <div className="info-item">
-              <strong>Jornada:</strong>
-              <span>{llamada.Jornada}</span>
-            </div>
-
-            <div className="info-item">
-              <strong>Campaña:</strong>
-              <span>{llamada.Campaña_Agente}</span>
-            </div>
-
-            <div className="info-item">
-              <strong>Supervisor:</strong>
-              <span>{llamada.NombreCompletoSupervisor}</span>
-            </div>
-
-            <div className="info-item">
-              <strong>Tipificación Detalle:</strong>
-              <span>{llamada.Tipificacion_Detalle}</span>
-            </div>
-
-            <div className="info-item">
-              <strong>Tipificación Estado IPC:</strong>
-              <span>{llamada.Tipificacion_Estado_IPC}</span>
-            </div>
-
-            <div className="info-item">
-              <strong>Tipificación Estado General:</strong>
-              <span>{llamada.Tipificacion_Estado_General}</span>
-            </div>
-
-            <div className="info-item">
-              <strong>Usuario Llamada Origen:</strong>
-              <span>{llamada.Usuario_Llamada_Origen}</span>
-            </div>
-          </div>
-        </div>
+                  <div className="detalle-seccion">
+                    <h3>📝 Tipificación</h3>
+                    <div className="detalle-linea">
+                      <span className="icono">📋</span>
+                      <span className="label">Detalle:</span>
+                      <span className="valor">{llamada.Tipificacion_Detalle}</span>
+                    </div>
+                    <div className="detalle-linea">
+                      <span className="icono">📊</span>
+                      <span className="label">Estado IPC:</span>
+                      <span className="valor">{llamada.Tipificacion_Estado_IPC}</span>
+                    </div>
+                    <div className="detalle-linea">
+                      <span className="icono">✓</span>
+                      <span className="label">Estado General:</span>
+                      <span className="valor">{llamada.Tipificacion_Estado_General}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </>
           )}
         </div>
       </div>
         );
       } else if (moduloActivo === 'mi-historial') {
-        return <div className="modulo-placeholder">📊 Módulo de Mi Historial (próximamente)</div>;
+        return <HistorialPersonal usuario={usuario} />;
       }
     }
     
@@ -521,7 +540,7 @@ function App() {
               </div>
               <button className="btn-logout" onClick={handleLogout}>
                 🚪 Cerrar Sesión
-              </button>
+        </button>
             </div>
           </div>
         </header>

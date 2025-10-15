@@ -303,7 +303,7 @@ header p {
 
 .llamada-detalle {
   background: white;
-  padding: 20px;
+  padding: 25px;
   border-radius: 10px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
@@ -313,53 +313,81 @@ header p {
   color: #333;
   border-bottom: 2px solid #667eea;
   padding-bottom: 10px;
-  font-size: 1.4rem;
+  font-size: 1.5rem;
+  margin-bottom: 20px;
 }
 
-.info-grid {
+.detalle-lineas {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 12px;
-  margin-top: 15px;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 25px;
 }
 
-.info-item {
-  padding: 12px;
+.detalle-seccion {
   background: #f8f9fa;
-  border-radius: 6px;
-  border-left: 3px solid #667eea;
+  padding: 20px;
+  border-radius: 10px;
+  border-left: 4px solid #667eea;
+}
+
+.detalle-seccion h3 {
+  margin: 0 0 15px 0;
+  color: #667eea;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.detalle-linea {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid #e0e0e0;
 }
 
-.info-item strong {
+.detalle-linea:last-child {
+  border-bottom: none;
+}
+
+.detalle-linea .icono {
+  font-size: 1.3rem;
+  min-width: 30px;
+  text-align: center;
+}
+
+.detalle-linea .label {
+  font-weight: 600;
   color: #555;
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  min-width: 120px;
+  font-size: 0.9rem;
 }
 
-.info-item span {
+.detalle-linea .valor {
+  flex: 1;
   color: #222;
-  font-size: 14px;
+  font-size: 0.95rem;
   font-weight: 500;
-  word-break: break-word;
+}
+
+.dni-parentesis {
+  color: #999;
+  font-weight: normal;
+  font-size: 0.9rem;
+}
+
+.badge-estado {
+  display: inline-block;
+  padding: 4px 12px;
+  background: #d4edda;
+  color: #155724;
+  border-radius: 15px;
+  font-size: 0.85rem;
+  font-weight: 600;
 }
 
 @media (max-width: 1600px) {
   .content-layout {
     grid-template-columns: 550px 1fr;
-  }
-  
-  .info-grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
-}
-
-@media (max-width: 1400px) {
-  .info-grid {
-    grid-template-columns: repeat(3, 1fr);
   }
 }
 
@@ -373,8 +401,8 @@ header p {
     top: 0;
   }
   
-  .info-grid {
-    grid-template-columns: repeat(4, 1fr);
+  .detalle-lineas {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -383,8 +411,8 @@ header p {
     grid-template-columns: repeat(2, 1fr);
   }
   
-  .info-grid {
-    grid-template-columns: repeat(3, 1fr);
+  .detalle-lineas {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -424,8 +452,13 @@ header p {
     grid-template-columns: 1fr;
   }
   
-  .info-grid {
-    grid-template-columns: repeat(2, 1fr);
+  .detalle-linea .label {
+    min-width: 100px;
+    font-size: 0.85rem;
+  }
+  
+  .detalle-linea .icono {
+    font-size: 1.1rem;
   }
   
   .cronometro-activo {

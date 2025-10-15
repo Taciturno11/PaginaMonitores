@@ -1,0 +1,246 @@
+.historial-general-container {
+  max-width: 100%;
+}
+
+.historial-loading {
+  background: white;
+  padding: 60px 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.loading-spinner {
+  font-size: 3rem;
+  animation: spin 1s linear infinite;
+  margin-bottom: 15px;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Ranking de monitores */
+.ranking-container {
+  background: white;
+  padding: 25px;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 30px;
+}
+
+.ranking-container h2 {
+  margin: 0 0 20px 0;
+  color: #333;
+  border-bottom: 2px solid #667eea;
+  padding-bottom: 10px;
+}
+
+.ranking-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 15px;
+}
+
+.ranking-card {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  padding: 15px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  border-left: 4px solid #667eea;
+}
+
+.ranking-1 {
+  background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+  border-left-color: #ffd700;
+}
+
+.ranking-2 {
+  background: linear-gradient(135deg, #c0c0c0 0%, #e0e0e0 100%);
+  border-left-color: #c0c0c0;
+}
+
+.ranking-3 {
+  background: linear-gradient(135deg, #cd7f32 0%, #e69b5a 100%);
+  border-left-color: #cd7f32;
+}
+
+.ranking-posicion {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #333;
+  min-width: 50px;
+  text-align: center;
+}
+
+.ranking-info {
+  flex: 1;
+}
+
+.ranking-nombre {
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 5px;
+}
+
+.ranking-stats {
+  display: flex;
+  gap: 15px;
+  font-size: 0.85rem;
+  color: #666;
+}
+
+/* Filtros */
+.filtros-historial {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+}
+
+.filtros-historial h2 {
+  margin: 0 0 15px 0;
+  color: #333;
+  border-bottom: 2px solid #667eea;
+  padding-bottom: 10px;
+}
+
+.filtro-busqueda {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.filtro-busqueda input {
+  flex: 1;
+  padding: 10px 15px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: border-color 0.3s;
+}
+
+.filtro-busqueda input:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.btn-limpiar {
+  padding: 10px 20px;
+  background: #e74c3c;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.3s;
+}
+
+.btn-limpiar:hover {
+  background: #c0392b;
+}
+
+/* Tabla */
+.historial-table-wrapper {
+  background: white;
+  padding: 25px;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow-x: auto;
+}
+
+.no-historial {
+  text-align: center;
+  padding: 60px 20px;
+  color: #999;
+}
+
+.no-historial p {
+  margin: 10px 0;
+  font-size: 1.1rem;
+}
+
+.historial-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  min-width: 1000px;
+}
+
+.historial-table thead {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.historial-table th {
+  padding: 12px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.historial-table td {
+  padding: 12px;
+  border-bottom: 1px solid #e0e0e0;
+  color: #333;
+}
+
+.historial-table tbody tr:hover {
+  background-color: #f8f9fa;
+}
+
+.monitor-nombre {
+  font-weight: 600;
+  color: #333;
+}
+
+.id-llamada {
+  font-family: 'Courier New', monospace;
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.tiempo-monitoreo {
+  font-family: 'Courier New', monospace;
+  font-weight: bold;
+  color: #667eea;
+}
+
+/* Footer con totales */
+.totales-footer {
+  background: #f8f9fa;
+  padding: 15px 25px;
+  border-radius: 8px;
+  margin-top: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.totales-footer span {
+  color: #666;
+  font-size: 0.95rem;
+}
+
+.totales-footer strong {
+  color: #333;
+  font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .ranking-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .totales-footer {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+

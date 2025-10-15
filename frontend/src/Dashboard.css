@@ -81,6 +81,7 @@
 .dashboard-table td {
   padding: 15px;
   border-bottom: 1px solid #e0e0e0;
+  color: #333;
 }
 
 .dashboard-table tbody tr {

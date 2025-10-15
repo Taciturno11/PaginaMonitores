@@ -221,6 +221,135 @@ app.post('/api/guardar-monitoreo', async (req, res) => {
   }
 });
 
+// Endpoint para obtener historial personal de un monitor
+app.get('/api/mi-historial', async (req, res) => {
+  try {
+    const { dni } = req.query;
+
+    if (!dni) {
+      return res.status(400).json({ error: 'DNI es requerido' });
+    }
+
+    const pool = await sql.connect(dbConfig);
+    
+    const result = await pool.request()
+      .input('dni', sql.VarChar, dni)
+      .query(`
+        SELECT 
+          ID,
+          ID_Llamada_Largo,
+          NumeroLlamada,
+          FechaLlamada,
+          HoraLlamada,
+          DuracionLlamada,
+          AgenteAuditado,
+          DNIEmpleadoAuditado,
+          CampañaAuditada,
+          ColaAuditada,
+          FechaHoraInicio,
+          FechaHoraFin,
+          TiempoMonitoreoSegundos,
+          CreadoEn
+        FROM [Partner].[mo].[Historial_Monitoreos]
+        WHERE DNIMonitor = @dni
+        ORDER BY FechaHoraInicio DESC
+      `);
+
+    // Calcular estadísticas
+    const total = result.recordset.length;
+    const tiempoTotal = result.recordset.reduce((sum, r) => sum + r.TiempoMonitoreoSegundos, 0);
+    const tiempoPromedio = total > 0 ? Math.floor(tiempoTotal / total) : 0;
+
+    // Filtrar por hoy
+    const hoy = new Date().toISOString().split('T')[0];
+    const monitoreosHoy = result.recordset.filter(r => {
+      const fecha = new Date(r.FechaHoraInicio).toISOString().split('T')[0];
+      return fecha === hoy;
+    });
+
+    res.json({
+      monitoreos: result.recordset,
+      estadisticas: {
+        total: total,
+        hoy: monitoreosHoy.length,
+        tiempoTotalSegundos: tiempoTotal,
+        tiempoPromedioSegundos: tiempoPromedio
+      }
+    });
+  } catch (error) {
+    console.error('Error al obtener historial:', error);
+    res.status(500).json({ error: 'Error al obtener historial', detalle: error.message });
+  }
+});
+
+// Endpoint para obtener historial general (solo jefa)
+app.get('/api/historial-general', async (req, res) => {
+  try {
+    const pool = await sql.connect(dbConfig);
+    
+    const result = await pool.request().query(`
+      SELECT 
+        ID,
+        DNIMonitor,
+        NombreMonitor,
+        ID_Llamada_Largo,
+        NumeroLlamada,
+        FechaLlamada,
+        HoraLlamada,
+        DuracionLlamada,
+        AgenteAuditado,
+        DNIEmpleadoAuditado,
+        CampañaAuditada,
+        ColaAuditada,
+        FechaHoraInicio,
+        FechaHoraFin,
+        TiempoMonitoreoSegundos,
+        CreadoEn
+      FROM [Partner].[mo].[Historial_Monitoreos]
+      ORDER BY FechaHoraInicio DESC
+    `);
+
+    // Estadísticas generales
+    const total = result.recordset.length;
+    const tiempoTotal = result.recordset.reduce((sum, r) => sum + r.TiempoMonitoreoSegundos, 0);
+
+    // Estadísticas por monitor
+    const statsPorMonitor = {};
+    result.recordset.forEach(r => {
+      if (!statsPorMonitor[r.DNIMonitor]) {
+        statsPorMonitor[r.DNIMonitor] = {
+          dni: r.DNIMonitor,
+          nombre: r.NombreMonitor,
+          total: 0,
+          tiempoTotal: 0
+        };
+      }
+      statsPorMonitor[r.DNIMonitor].total++;
+      statsPorMonitor[r.DNIMonitor].tiempoTotal += r.TiempoMonitoreoSegundos;
+    });
+
+    const ranking = Object.values(statsPorMonitor)
+      .sort((a, b) => b.total - a.total)
+      .map((m, index) => ({
+        posicion: index + 1,
+        ...m,
+        tiempoPromedio: m.total > 0 ? Math.floor(m.tiempoTotal / m.total) : 0
+      }));
+
+    res.json({
+      monitoreos: result.recordset,
+      estadisticas: {
+        total: total,
+        tiempoTotalSegundos: tiempoTotal,
+        ranking: ranking
+      }
+    });
+  } catch (error) {
+    console.error('Error al obtener historial general:', error);
+    res.status(500).json({ error: 'Error al obtener historial general', detalle: error.message });
+  }
+});
+
 // Endpoint de login para monitores y jefa
 app.post('/api/login', async (req, res) => {
   try {
