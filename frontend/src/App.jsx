@@ -191,12 +191,23 @@ function App() {
     // Guardar en base de datos
     if (inicioMonitoreo && llamada && usuario) {
       try {
+        // Formatear fechas en hora local sin conversión UTC
+        const formatearFechaLocal = (fecha) => {
+          const year = fecha.getFullYear();
+          const month = String(fecha.getMonth() + 1).padStart(2, '0');
+          const day = String(fecha.getDate()).padStart(2, '0');
+          const hours = String(fecha.getHours()).padStart(2, '0');
+          const minutes = String(fecha.getMinutes()).padStart(2, '0');
+          const seconds = String(fecha.getSeconds()).padStart(2, '0');
+          return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+        };
+
         const payload = {
           dniMonitor: usuario.dni,
           nombreMonitor: usuario.nombre,
           llamada: llamada,
-          fechaHoraInicio: inicioMonitoreo.toISOString(),
-          fechaHoraFin: fechaHoraFin.toISOString(),
+          fechaHoraInicio: formatearFechaLocal(inicioMonitoreo),
+          fechaHoraFin: formatearFechaLocal(fechaHoraFin),
           tiempoSegundos: tiempoMonitoreo,
           evaluacion: evaluacion
         };
@@ -440,7 +451,12 @@ function App() {
                     <div className="detalle-linea">
                       <span className="icono">📅</span>
                       <span className="label">Fecha:</span>
-                      <span className="valor">{new Date(llamada.Fecha).toLocaleDateString()}</span>
+                      <span className="valor">
+                        {llamada.Fecha.includes('T') 
+                          ? llamada.Fecha.split('T')[0].split('-').reverse().join('/')
+                          : new Date(llamada.Fecha).toLocaleDateString()
+                        }
+                      </span>
                     </div>
                     <div className="detalle-linea">
                       <span className="icono">🕐</span>
@@ -454,7 +470,12 @@ function App() {
                     <div className="detalle-linea">
                       <span className="icono">⏱️</span>
                       <span className="label">Duración:</span>
-                      <span className="valor">{llamada.Duracion}s</span>
+                      <span className="valor">
+                        {llamada.Duracion >= 60 
+                          ? `${Math.floor(llamada.Duracion / 60)}m ${llamada.Duracion % 60}s`
+                          : `${llamada.Duracion}s`
+                        }
+                      </span>
                     </div>
                   </div>
 

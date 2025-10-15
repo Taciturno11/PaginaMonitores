@@ -3,9 +3,14 @@ import './HistorialGeneral.css'
 
 function HistorialGeneral() {
   const [historial, setHistorial] = useState([]);
+  const [historialFiltrado, setHistorialFiltrado] = useState([]);
   const [estadisticas, setEstadisticas] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [filtroMonitor, setFiltroMonitor] = useState('');
+  const [filtros, setFiltros] = useState({
+    fechaInicio: '',
+    fechaFin: '',
+    monitor: ''
+  });
 
   const API_URL = import.meta.env.VITE_API_URL;
 
@@ -31,6 +36,61 @@ function HistorialGeneral() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    aplicarFiltros();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [historial, filtros]);
+
+  const aplicarFiltros = () => {
+    let resultado = [...historial];
+
+    // Filtrar por fecha inicio
+    if (filtros.fechaInicio) {
+      const fechaInicio = new Date(filtros.fechaInicio);
+      fechaInicio.setHours(0, 0, 0, 0);
+      resultado = resultado.filter(item => {
+        const fechaItem = new Date(item.FechaHoraInicio);
+        return fechaItem >= fechaInicio;
+      });
+    }
+
+    // Filtrar por fecha fin
+    if (filtros.fechaFin) {
+      const fechaFin = new Date(filtros.fechaFin);
+      fechaFin.setHours(23, 59, 59, 999);
+      resultado = resultado.filter(item => {
+        const fechaItem = new Date(item.FechaHoraInicio);
+        return fechaItem <= fechaFin;
+      });
+    }
+
+    // Filtrar por monitor
+    if (filtros.monitor) {
+      resultado = resultado.filter(item => 
+        item.NombreMonitor.toLowerCase().includes(filtros.monitor.toLowerCase()) ||
+        item.DNIMonitor.includes(filtros.monitor)
+      );
+    }
+
+    setHistorialFiltrado(resultado);
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFiltros(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const limpiarFiltros = () => {
+    setFiltros({
+      fechaInicio: '',
+      fechaFin: '',
+      monitor: ''
+    });
+  };
+
   const formatearTiempo = (segundos) => {
     const horas = Math.floor(segundos / 3600);
     const minutos = Math.floor((segundos % 3600) / 60);
@@ -43,6 +103,14 @@ function HistorialGeneral() {
   };
 
   const formatearFechaHora = (fechaHora) => {
+    // Si es un string de fecha ISO, extraer solo la parte de fecha y hora sin zona horaria
+    if (typeof fechaHora === 'string' && fechaHora.includes('T')) {
+      const [fechaPart, horaPart] = fechaHora.split('T');
+      const hora = horaPart.split('.')[0]; // Quitar milisegundos si existen
+      return `${fechaPart.split('-').reverse().join('/')} ${hora}`;
+    }
+    
+    // Si es un objeto Date o string normal
     const fecha = new Date(fechaHora);
     return fecha.toLocaleString('es-PE', {
       day: '2-digit',
@@ -53,10 +121,6 @@ function HistorialGeneral() {
     });
   };
 
-  // Filtrar historial por monitor
-  const historialFiltrado = filtroMonitor
-    ? historial.filter(h => h.NombreMonitor.toLowerCase().includes(filtroMonitor.toLowerCase()) || h.DNIMonitor.includes(filtroMonitor))
-    : historial;
 
   if (loading) {
     return (
@@ -91,28 +155,45 @@ function HistorialGeneral() {
       )}
 
       {/* Filtros */}
-      <div className="filtros-historial">
+      <div className="historial-header">
         <h2>📋 Historial de Auditorías</h2>
-        <div className="filtro-busqueda">
-          <input
-            type="text"
-            placeholder="Buscar por monitor (nombre o DNI)..."
-            value={filtroMonitor}
-            onChange={(e) => setFiltroMonitor(e.target.value)}
-          />
-          {filtroMonitor && (
-            <button className="btn-limpiar" onClick={() => setFiltroMonitor('')}>
-              ✕ Limpiar
+          <div className="filtros-inline">
+            <input 
+              type="date" 
+              name="fechaInicio"
+              value={filtros.fechaInicio}
+              onChange={handleInputChange}
+              className="filtro-fecha"
+            />
+            <input 
+              type="date" 
+              name="fechaFin"
+              value={filtros.fechaFin}
+              onChange={handleInputChange}
+              className="filtro-fecha"
+            />
+            <input
+              type="text"
+              name="monitor"
+              placeholder="Buscar monitor..."
+              value={filtros.monitor}
+              onChange={handleInputChange}
+              className="filtro-busqueda-inline"
+            />
+            <button className="btn-limpiar-inline" onClick={limpiarFiltros}>
+              Limpiar
             </button>
-          )}
-        </div>
+          </div>
       </div>
 
       {/* Tabla de historial */}
       <div className="historial-table-wrapper">
         {historialFiltrado.length === 0 ? (
           <div className="no-historial">
-            <p>{filtroMonitor ? 'No se encontraron resultados' : 'No hay monitoreos registrados aún'}</p>
+            <p>{historial.length === 0 ? 'No hay monitoreos registrados aún' : 'No se encontraron resultados con los filtros aplicados'}</p>
+            {historial.length > 0 && (
+              <p className="hint">Ajusta los filtros para ver más resultados</p>
+            )}
           </div>
         ) : (
           <table className="historial-table">
@@ -150,7 +231,7 @@ function HistorialGeneral() {
       {estadisticas && historialFiltrado.length > 0 && (
         <div className="totales-footer">
           <span>Total de registros: <strong>{historialFiltrado.length}</strong></span>
-          {!filtroMonitor && (
+          {!filtros.monitor && (
             <span>Tiempo total acumulado: <strong>{formatearTiempo(estadisticas.tiempoTotalSegundos)}</strong></span>
           )}
         </div>

@@ -205,7 +205,7 @@ app.post('/api/guardar-monitoreo', async (req, res) => {
         VALUES
           (@dniMonitor, @nombreMonitor, @idLlamadaLargo, @numeroLlamada, @fechaLlamada,
            @horaLlamada, @duracionLlamada, @agenteAuditado, @dniEmpleadoAuditado,
-           @campanaAuditada, @colaAuditada, @fechaHoraInicio, @fechaHoraFin, @tiempoSegundos);
+           @campanaAuditada, @colaAuditada, GETDATE() - CAST(@tiempoSegundos AS FLOAT) / 86400.0, GETDATE(), @tiempoSegundos);
         
         SELECT SCOPE_IDENTITY() AS ID;
       `);
