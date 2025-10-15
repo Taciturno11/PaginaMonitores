@@ -348,24 +348,10 @@ function App() {
           >
             {loading ? '🔄 Buscando...' : '🎲 Obtener Llamada Aleatoria'}
           </button>
-        </div>
 
-        <div className="results-area">
-          {error && (
-            <div className="error-message">
-              ❌ {error}
-            </div>
-          )}
-
-          {!llamada && !error && (
-            <div className="empty-state">
-              <div className="empty-state-icon">🔍</div>
-              <p>Selecciona filtros y haz clic en "Obtener Llamada Aleatoria" para empezar</p>
-            </div>
-          )}
-
+          {/* Contador y cronómetro debajo de los filtros */}
           {llamada && (
-            <>
+            <div className="monitoreo-controles">
               {/* Contador inicial */}
               {contadorInicial !== null && (
                 <div className="contador-inicial">
@@ -388,12 +374,30 @@ function App() {
               {tiempoFinal !== null && (
                 <div className="tiempo-final">
                   <div className="tiempo-completado">
-                    ✅ Monitoreo completado: <strong>{formatearTiempo(tiempoFinal)}</strong>
+                    ✅ Completado: <strong>{formatearTiempo(tiempoFinal)}</strong>
                   </div>
                 </div>
               )}
+            </div>
+          )}
+        </div>
 
-              <div className="llamada-detalle">
+        <div className="results-area">
+          {error && (
+            <div className="error-message">
+              ❌ {error}
+            </div>
+          )}
+
+          {!llamada && !error && (
+            <div className="empty-state">
+              <div className="empty-state-icon">🔍</div>
+              <p>Selecciona filtros y haz clic en "Obtener Llamada Aleatoria" para empezar</p>
+            </div>
+          )}
+
+          {llamada && (
+            <div className="llamada-detalle">
                 <h2>📞 Detalle de la Llamada</h2>
               
                 <div className="detalle-lineas">
@@ -503,7 +507,6 @@ function App() {
                   </div>
                 </div>
               </div>
-            </>
           )}
         </div>
       </div>
