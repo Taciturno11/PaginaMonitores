@@ -163,6 +163,64 @@ app.get('/api/opciones-filtros', async (req, res) => {
   }
 });
 
+// Endpoint para guardar monitoreo en BD
+app.post('/api/guardar-monitoreo', async (req, res) => {
+  try {
+    const {
+      dniMonitor,
+      nombreMonitor,
+      llamada,
+      fechaHoraInicio,
+      fechaHoraFin,
+      tiempoSegundos
+    } = req.body;
+
+    // Validaciones
+    if (!dniMonitor || !nombreMonitor || !llamada || !fechaHoraInicio || !fechaHoraFin || !tiempoSegundos) {
+      return res.status(400).json({ error: 'Faltan datos requeridos' });
+    }
+
+    const pool = await sql.connect(dbConfig);
+    
+    const result = await pool.request()
+      .input('dniMonitor', sql.VarChar, dniMonitor)
+      .input('nombreMonitor', sql.VarChar, nombreMonitor)
+      .input('idLlamadaLargo', sql.VarChar, llamada.ID_Largo)
+      .input('numeroLlamada', sql.VarChar, llamada.Numero)
+      .input('fechaLlamada', sql.Date, llamada.Fecha)
+      .input('horaLlamada', sql.Time, llamada.Hora)
+      .input('duracionLlamada', sql.Int, llamada.Duracion)
+      .input('agenteAuditado', sql.VarChar, llamada.NombreCompletoAgente)
+      .input('dniEmpleadoAuditado', sql.VarChar, llamada.DNIEmpleado)
+      .input('campanaAuditada', sql.VarChar, llamada.Campaña_Agente)
+      .input('colaAuditada', sql.VarChar, llamada.Cola)
+      .input('fechaHoraInicio', sql.DateTime, fechaHoraInicio)
+      .input('fechaHoraFin', sql.DateTime, fechaHoraFin)
+      .input('tiempoSegundos', sql.Int, tiempoSegundos)
+      .query(`
+        INSERT INTO [Partner].[mo].[Historial_Monitoreos]
+          (DNIMonitor, NombreMonitor, ID_Llamada_Largo, NumeroLlamada, FechaLlamada, 
+           HoraLlamada, DuracionLlamada, AgenteAuditado, DNIEmpleadoAuditado, 
+           CampañaAuditada, ColaAuditada, FechaHoraInicio, FechaHoraFin, TiempoMonitoreoSegundos)
+        VALUES
+          (@dniMonitor, @nombreMonitor, @idLlamadaLargo, @numeroLlamada, @fechaLlamada,
+           @horaLlamada, @duracionLlamada, @agenteAuditado, @dniEmpleadoAuditado,
+           @campanaAuditada, @colaAuditada, @fechaHoraInicio, @fechaHoraFin, @tiempoSegundos);
+        
+        SELECT SCOPE_IDENTITY() AS ID;
+      `);
+
+    res.json({
+      success: true,
+      id: result.recordset[0].ID,
+      message: 'Monitoreo guardado correctamente'
+    });
+  } catch (error) {
+    console.error('Error al guardar monitoreo:', error);
+    res.status(500).json({ error: 'Error al guardar monitoreo', detalle: error.message });
+  }
+});
+
 // Endpoint de login para monitores y jefa
 app.post('/api/login', async (req, res) => {
   try {

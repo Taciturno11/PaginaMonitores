@@ -2,10 +2,12 @@ import { useState, useEffect } from 'react'
 import './App.css'
 import Login from './Login'
 import Dashboard from './Dashboard'
+import Sidebar from './Sidebar'
 import { io } from 'socket.io-client'
 
 function App() {
   const [usuario, setUsuario] = useState(null);
+  const [moduloActivo, setModuloActivo] = useState('monitoreo'); // Para monitores por defecto 'monitoreo', para jefa 'dashboard'
   const [filtros, setFiltros] = useState({
     fechaInicio: '',
     fechaFin: '',
@@ -25,6 +27,7 @@ function App() {
   const [monitoreoActivo, setMonitoreoActivo] = useState(false);
   const [tiempoMonitoreo, setTiempoMonitoreo] = useState(0);
   const [tiempoFinal, setTiempoFinal] = useState(null);
+  const [inicioMonitoreo, setInicioMonitoreo] = useState(null);
 
   const API_URL = import.meta.env.VITE_API_URL;
   const [socket, setSocket] = useState(null);
@@ -102,12 +105,13 @@ function App() {
       setContadorInicial(null);
       setMonitoreoActivo(true);
       setTiempoMonitoreo(0);
+      setInicioMonitoreo(new Date()); // Guardar hora de inicio
       
       // Emitir evento Socket.IO de inicio de monitoreo
       if (socket && usuario && llamada) {
         socket.emit('iniciar_monitoreo', {
           dni: usuario.dni,
-          llamadaId: llamada.ID_Corto || llamada.ID_Largo
+          llamadaId: llamada.ID_Largo
         });
       }
     }
@@ -164,9 +168,11 @@ function App() {
     }
   };
 
-  const finalizarMonitoreo = () => {
+  const finalizarMonitoreo = async () => {
     setMonitoreoActivo(false);
     setTiempoFinal(tiempoMonitoreo);
+    
+    const fechaHoraFin = new Date();
     
     // Emitir evento Socket.IO de finalización
     if (socket && usuario) {
@@ -174,6 +180,34 @@ function App() {
         dni: usuario.dni,
         tiempoTotal: tiempoMonitoreo
       });
+    }
+    
+    // Guardar en base de datos
+    if (inicioMonitoreo && llamada && usuario) {
+      try {
+        const response = await fetch(`${API_URL}/api/guardar-monitoreo`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            dniMonitor: usuario.dni,
+            nombreMonitor: usuario.nombre,
+            llamada: llamada,
+            fechaHoraInicio: inicioMonitoreo.toISOString(),
+            fechaHoraFin: fechaHoraFin.toISOString(),
+            tiempoSegundos: tiempoMonitoreo
+          })
+        });
+
+        if (response.ok) {
+          console.log('✅ Monitoreo guardado en BD');
+        } else {
+          console.error('❌ Error al guardar monitoreo');
+        }
+      } catch (error) {
+        console.error('❌ Error al guardar monitoreo:', error);
+      }
     }
   };
 
@@ -190,6 +224,12 @@ function App() {
 
   const handleLoginSuccess = (usuarioData) => {
     setUsuario(usuarioData);
+    // Establecer módulo inicial según el rol
+    setModuloActivo(usuarioData.rol === 'jefa' ? 'dashboard' : 'monitoreo');
+  };
+
+  const handleCambiarModulo = (modulo) => {
+    setModuloActivo(modulo);
   };
 
   const handleLogout = () => {
@@ -202,35 +242,22 @@ function App() {
     return <Login onLoginSuccess={handleLoginSuccess} />;
   }
 
-  return (
-    <div className="app-container">
-      <header>
-        <div className="header-content">
-          <div className="header-left">
-            <img src="/partnerlogo.svg" alt="Partner Logo" className="header-logo" />
-            <div>
-              <h1>🎧 Monitor de Llamadas</h1>
-              <p>Sistema de auditoría de llamadas</p>
-            </div>
-          </div>
-          <div className="header-right">
-            <div className="user-info">
-              <span className="user-name">{usuario.nombre}</span>
-              <span className="user-rol">{usuario.rol === 'jefa' ? '👑 Jefa' : '👤 Monitor'}</span>
-            </div>
-            <button className="btn-logout" onClick={handleLogout}>
-              🚪 Cerrar Sesión
-            </button>
-          </div>
-        </div>
-      </header>
-
-      {usuario.rol === 'jefa' ? (
-        // Vista de la jefa: Dashboard con monitores
-        <Dashboard socket={socket} />
-      ) : (
-        // Vista del monitor: Búsqueda de llamadas
-        <div className="content-layout">
+  const renderModulo = () => {
+    // Para la jefa
+    if (usuario.rol === 'jefa') {
+      if (moduloActivo === 'dashboard') {
+        return <Dashboard socket={socket} />;
+      } else if (moduloActivo === 'historial-general') {
+        return <div className="modulo-placeholder">📈 Módulo de Historial General (próximamente)</div>;
+      }
+    }
+    
+    // Para monitores
+    if (usuario.rol === 'monitor') {
+      if (moduloActivo === 'monitoreo') {
+        // Renderizar el módulo de monitoreo (el código actual)
+        return (
+          <div className="content-layout">
           <div className="filtros-container">
           <h2>Filtros de Búsqueda</h2>
           
@@ -461,7 +488,48 @@ function App() {
           )}
         </div>
       </div>
-      )}
+        );
+      } else if (moduloActivo === 'mi-historial') {
+        return <div className="modulo-placeholder">📊 Módulo de Mi Historial (próximamente)</div>;
+      }
+    }
+    
+    return null;
+  };
+
+  return (
+    <div className="app-layout">
+      <Sidebar 
+        rol={usuario.rol} 
+        moduloActivo={moduloActivo} 
+        onCambiarModulo={handleCambiarModulo} 
+      />
+      
+      <div className="main-content">
+        <header>
+          <div className="header-content">
+            <div className="header-left">
+              <div>
+                <h1>🎧 Monitor de Llamadas</h1>
+                <p>Sistema de auditoría de llamadas</p>
+              </div>
+            </div>
+            <div className="header-right">
+              <div className="user-info">
+                <span className="user-name">{usuario.nombre}</span>
+                <span className="user-rol">{usuario.rol === 'jefa' ? '👑 Jefa' : '👤 Monitor'}</span>
+              </div>
+              <button className="btn-logout" onClick={handleLogout}>
+                🚪 Cerrar Sesión
+              </button>
+            </div>
+          </div>
+        </header>
+
+        <div className="modulo-container">
+          {renderModulo()}
+        </div>
+      </div>
     </div>
   )
 }

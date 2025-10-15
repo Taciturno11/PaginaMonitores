@@ -1,17 +1,36 @@
-.app-container {
-  max-width: 100%;
-  margin: 0;
-  padding: 20px;
+.app-layout {
+  display: flex;
   min-height: 100vh;
+  background-color: #f5f6fa;
+}
+
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+}
+
+.modulo-container {
+  flex: 1;
+  padding: 20px;
+}
+
+.modulo-placeholder {
+  background: white;
+  padding: 60px 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  font-size: 1.5rem;
+  color: #999;
 }
 
 header {
-  margin-bottom: 20px;
   padding: 20px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
-  border-radius: 10px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .header-content {
@@ -28,13 +47,6 @@ header {
   gap: 15px;
 }
 
-.header-logo {
-  width: 60px;
-  height: 60px;
-  background: white;
-  padding: 8px;
-  border-radius: 10px;
-}
 
 header h1 {
   margin: 0;
@@ -377,7 +389,11 @@ header p {
 }
 
 @media (max-width: 768px) {
-  .app-container {
+  .app-layout {
+    flex-direction: column;
+  }
+  
+  .modulo-container {
     padding: 10px;
   }
   

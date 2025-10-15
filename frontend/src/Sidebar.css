@@ -1,0 +1,133 @@
+.sidebar {
+  background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  transition: width 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  color: white;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.sidebar:not(.sidebar-colapsado) {
+  width: 250px;
+}
+
+.sidebar-colapsado {
+  width: 70px;
+}
+
+.sidebar-header {
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sidebar-logo img {
+  width: 40px;
+  height: 40px;
+  background: white;
+  padding: 5px;
+  border-radius: 8px;
+}
+
+.sidebar-logo span {
+  font-size: 1.3rem;
+  font-weight: bold;
+  color: white;
+}
+
+.sidebar-toggle {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  font-size: 1.2rem;
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sidebar-toggle:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.sidebar-nav {
+  padding: 20px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sidebar-item {
+  background: transparent;
+  border: none;
+  color: white;
+  padding: 12px 15px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-size: 1rem;
+  text-align: left;
+  width: 100%;
+  white-space: nowrap;
+}
+
+.sidebar-item:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.sidebar-item.activo {
+  background: rgba(255, 255, 255, 0.25);
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.sidebar-icono {
+  font-size: 1.5rem;
+  min-width: 30px;
+  display: flex;
+  justify-content: center;
+}
+
+.sidebar-texto {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sidebar-colapsado .sidebar-item {
+  justify-content: center;
+  padding: 12px;
+}
+
+.sidebar-colapsado .sidebar-texto {
+  display: none;
+}
+
+@media (max-width: 968px) {
+  .sidebar {
+    position: fixed;
+    z-index: 1000;
+  }
+  
+  .sidebar-colapsado {
+    width: 60px;
+  }
+}
+
