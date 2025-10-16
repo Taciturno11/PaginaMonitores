@@ -193,3 +193,22 @@
   }
 }
 
+/* Resaltar el tiempo activo */
+.tiempo-activo {
+  background-color: #fff3cd !important;
+  border: 2px solid #ffc107 !important;
+  border-radius: 4px;
+  font-weight: bold;
+  font-size: 1.1em;
+  animation: pulse 1s infinite alternate;
+}
+
+@keyframes pulse {
+  from {
+    background-color: #fff3cd;
+  }
+  to {
+    background-color: #ffeaa7;
+  }
+}
+

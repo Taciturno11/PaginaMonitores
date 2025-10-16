@@ -477,10 +477,12 @@ io.on('connection', (socket) => {
     if (monitor && monitor.llamadaActual) {
       const tiempoMonitoreo = Math.floor((Date.now() - monitor.llamadaActual.inicioMonitoreo) / 1000);
       
+      // Cambiar estado y acumular tiempo total en llamada
       monitor.estado = 'conectado';
       monitor.tiempoEnLlamada += tiempoMonitoreo;
       monitor.llamadaActual = null;
       monitor.ultimaActualizacion = Date.now();
+      monitor.conectadoDesde = Date.now(); // Resetear tiempo de conexión para tiempo inactivo
       
       console.log(`⏹️ Monitor ${monitor.nombre} finalizó monitoreo (${tiempoMonitoreo}s)`);
       
@@ -531,26 +533,29 @@ io.on('connection', (socket) => {
 function emitirEstadoMonitoresAJefa() {
   const estadoMonitores = Array.from(monitores.values()).map(monitor => {
     const ahora = Date.now();
-    const tiempoConectado = Math.floor((ahora - monitor.conectadoDesde) / 1000);
     
-    let tiempoEnLlamada = monitor.tiempoEnLlamada;
-    let tiempoInactivo = monitor.tiempoInactivo;
+    // Inicializar todos los tiempos en 0
+    let tiempoEnLlamada = 0;
+    let tiempoInactivo = 0;
     let tiempoDesconectado = 0;
     
-    // Si está en llamada actualmente, sumar el tiempo actual
-    if (monitor.estado === 'en_llamada' && monitor.llamadaActual) {
-      const tiempoLlamadaActual = Math.floor((ahora - monitor.llamadaActual.inicioMonitoreo) / 1000);
-      tiempoEnLlamada += tiempoLlamadaActual;
-    }
-    
-    // Si está conectado pero no en llamada, es tiempo inactivo
-    if (monitor.estado === 'conectado') {
-      tiempoInactivo = tiempoConectado - monitor.tiempoEnLlamada;
-    }
-    
-    // Si está desconectado, calcular tiempo desconectado
-    if (monitor.estado === 'desconectado') {
-      tiempoDesconectado = Math.floor((ahora - monitor.ultimaActualizacion) / 1000);
+    // Solo calcular el tiempo del estado actual
+    switch (monitor.estado) {
+      case 'en_llamada':
+        if (monitor.llamadaActual) {
+          tiempoEnLlamada = Math.floor((ahora - monitor.llamadaActual.inicioMonitoreo) / 1000);
+        }
+        break;
+        
+      case 'conectado':
+        // Tiempo inactivo = tiempo desde que se conectó - tiempo acumulado en llamadas
+        const tiempoConectado = Math.floor((ahora - monitor.conectadoDesde) / 1000);
+        tiempoInactivo = Math.max(0, tiempoConectado - monitor.tiempoEnLlamada);
+        break;
+        
+      case 'desconectado':
+        tiempoDesconectado = Math.floor((ahora - monitor.ultimaActualizacion) / 1000);
+        break;
     }
     
     return {

@@ -46,21 +46,31 @@ function HistorialGeneral() {
 
     // Filtrar por fecha inicio
     if (filtros.fechaInicio) {
-      const fechaInicio = new Date(filtros.fechaInicio);
-      fechaInicio.setHours(0, 0, 0, 0);
       resultado = resultado.filter(item => {
-        const fechaItem = new Date(item.FechaHoraInicio);
-        return fechaItem >= fechaInicio;
+        // Extraer solo la fecha sin hora para comparar
+        const fechaItem = item.FechaHoraInicio.includes('T') 
+          ? item.FechaHoraInicio.split('T')[0] 
+          : new Date(item.FechaHoraInicio).toISOString().split('T')[0];
+        
+        // Debug: mostrar comparación
+        console.log(`[HistorialGeneral] Comparando: ${fechaItem} >= ${filtros.fechaInicio} = ${fechaItem >= filtros.fechaInicio}`);
+        
+        return fechaItem >= filtros.fechaInicio;
       });
     }
 
     // Filtrar por fecha fin
     if (filtros.fechaFin) {
-      const fechaFin = new Date(filtros.fechaFin);
-      fechaFin.setHours(23, 59, 59, 999);
       resultado = resultado.filter(item => {
-        const fechaItem = new Date(item.FechaHoraInicio);
-        return fechaItem <= fechaFin;
+        // Extraer solo la fecha sin hora para comparar
+        const fechaItem = item.FechaHoraInicio.includes('T') 
+          ? item.FechaHoraInicio.split('T')[0] 
+          : new Date(item.FechaHoraInicio).toISOString().split('T')[0];
+        
+        // Debug: mostrar comparación
+        console.log(`[HistorialGeneral] Comparando: ${fechaItem} <= ${filtros.fechaFin} = ${fechaItem <= filtros.fechaFin}`);
+        
+        return fechaItem <= filtros.fechaFin;
       });
     }
 

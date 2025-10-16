@@ -3,6 +3,7 @@ import './FormularioEvaluacion.css';
 
 const FormularioEvaluacion = ({ llamada, tiempoMonitoreo, onGuardar, onCancelar }) => {
   const [tipoServicio, setTipoServicio] = useState('');
+  const [fueVenta, setFueVenta] = useState('');
   const [causa, setCausa] = useState('');
   const [motivo, setMotivo] = useState('');
 
@@ -33,21 +34,43 @@ const FormularioEvaluacion = ({ llamada, tiempoMonitoreo, onGuardar, onCancelar 
     ]
   };
 
+  const handleTipoServicioChange = (e) => {
+    setTipoServicio(e.target.value);
+    // Resetear todos los campos cuando cambia el tipo de servicio
+    setFueVenta('');
+    setCausa('');
+    setMotivo('');
+  };
+
   const handleCausaChange = (nuevaCausa) => {
     setCausa(nuevaCausa);
     setMotivo(''); // Limpiar motivo cuando cambie la causa
   };
 
   const handleGuardar = () => {
-    if (!tipoServicio || !causa || !motivo) {
-      alert('Por favor completa todos los campos');
+    // Validaciones según el tipo de servicio
+    if (tipoServicio === 'VENTAS') {
+      if (!fueVenta) {
+        alert('Por favor selecciona si fue una venta');
+        return;
+      }
+      // Si no fue venta, validar causa y motivo
+      if (fueVenta === 'NO' && (!causa || !motivo)) {
+        alert('Por favor completa todos los campos');
+        return;
+      }
+    } else if (tipoServicio === 'ATC') {
+      // Para ATC no se requieren campos adicionales
+    } else {
+      alert('Por favor selecciona un tipo de servicio');
       return;
     }
 
     const evaluacion = {
       tipoServicio,
-      causa,
-      motivo,
+      fueVenta,
+      causa: fueVenta === 'NO' ? causa : '',
+      motivo: fueVenta === 'NO' ? motivo : '',
       llamada,
       tiempoMonitoreo
     };
@@ -73,7 +96,7 @@ const FormularioEvaluacion = ({ llamada, tiempoMonitoreo, onGuardar, onCancelar 
                   name="tipoServicio"
                   value="VENTAS"
                   checked={tipoServicio === 'VENTAS'}
-                  onChange={(e) => setTipoServicio(e.target.value)}
+                  onChange={handleTipoServicioChange}
                 />
                 <span className="radio-label">VENTAS</span>
               </label>
@@ -83,7 +106,7 @@ const FormularioEvaluacion = ({ llamada, tiempoMonitoreo, onGuardar, onCancelar 
                   name="tipoServicio"
                   value="ATC"
                   checked={tipoServicio === 'ATC'}
-                  onChange={(e) => setTipoServicio(e.target.value)}
+                  onChange={handleTipoServicioChange}
                 />
                 <span className="radio-label">ATC</span>
               </label>
@@ -92,7 +115,37 @@ const FormularioEvaluacion = ({ llamada, tiempoMonitoreo, onGuardar, onCancelar 
 
           {/* Evaluación para VENTAS */}
           {tipoServicio === 'VENTAS' && (
-            <div className="evaluacion-grid">
+            <>
+              {/* Pregunta si fue venta */}
+              <div className="campo-formulario">
+                <label>¿Fue una Venta?</label>
+                <div className="radio-group">
+                  <label className="radio-option">
+                    <input
+                      type="radio"
+                      name="fueVenta"
+                      value="SI"
+                      checked={fueVenta === 'SI'}
+                      onChange={(e) => setFueVenta(e.target.value)}
+                    />
+                    <span className="radio-label">Sí</span>
+                  </label>
+                  <label className="radio-option">
+                    <input
+                      type="radio"
+                      name="fueVenta"
+                      value="NO"
+                      checked={fueVenta === 'NO'}
+                      onChange={(e) => setFueVenta(e.target.value)}
+                    />
+                    <span className="radio-label">No</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Campos de causa y motivo solo si NO fue venta */}
+              {fueVenta === 'NO' && (
+                <div className="evaluacion-grid">
               {/* Causa */}
               <div className="campo-formulario">
                 <label>Causa:</label>
@@ -127,7 +180,9 @@ const FormularioEvaluacion = ({ llamada, tiempoMonitoreo, onGuardar, onCancelar 
                   ))}
                 </select>
               </div>
-            </div>
+                </div>
+              )}
+            </>
           )}
 
           {/* Evaluación para ATC */}

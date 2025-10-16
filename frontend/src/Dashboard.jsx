@@ -100,13 +100,13 @@ function Dashboard({ socket }) {
                   <td className="monitor-nombre">{monitor.nombre}</td>
                   <td>{monitor.dni}</td>
                   <td>{getEstadoBadge(monitor.estado)}</td>
-                  <td className="tiempo-llamada">
+                  <td className={`tiempo-llamada ${monitor.estado === 'en_llamada' ? 'tiempo-activo' : ''}`}>
                     {formatearTiempo(monitor.tiempoEnLlamada)}
                   </td>
-                  <td className="tiempo-inactivo">
+                  <td className={`tiempo-inactivo ${monitor.estado === 'conectado' ? 'tiempo-activo' : ''}`}>
                     {formatearTiempo(monitor.tiempoInactivo)}
                   </td>
-                  <td className="tiempo-desconectado">
+                  <td className={`tiempo-desconectado ${monitor.estado === 'desconectado' ? 'tiempo-activo' : ''}`}>
                     {formatearTiempo(monitor.tiempoDesconectado)}
                   </td>
                   <td className="llamada-actual">
