@@ -5,6 +5,7 @@ import Dashboard from './Dashboard'
 import Sidebar from './Sidebar'
 import HistorialPersonal from './HistorialPersonal'
 import HistorialGeneral from './HistorialGeneral'
+import Reporte from './Reporte'
 import FormularioEvaluacion from './FormularioEvaluacion'
 import { io } from 'socket.io-client'
 
@@ -282,6 +283,8 @@ function App() {
         return <Dashboard socket={socket} />;
       } else if (moduloActivo === 'historial-general') {
         return <HistorialGeneral />;
+      } else if (moduloActivo === 'reporte') {
+        return <Reporte />;
       }
     }
     

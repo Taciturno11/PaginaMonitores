@@ -17,7 +17,8 @@ function Sidebar({ rol, moduloActivo, onCambiarModulo }) {
   // Módulos para jefa
   const modulosJefa = [
     { id: 'dashboard', nombre: 'Dashboard', icono: '📊' },
-    { id: 'historial-general', nombre: 'Historial General', icono: '📈' }
+    { id: 'historial-general', nombre: 'Historial General', icono: '📈' },
+    { id: 'reporte', nombre: 'Reporte', icono: '🧾' }
   ];
 
   const modulos = rol === 'jefa' ? modulosJefa : modulosMonitor;

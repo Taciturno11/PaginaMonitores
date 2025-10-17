@@ -31,11 +31,11 @@ function Dashboard({ socket }) {
   const getEstadoBadge = (estado) => {
     switch(estado) {
       case 'en_llamada':
-        return <span className="badge badge-en-llamada">🟢 En Llamada</span>;
+        return <span className="badge badge-en-llamada">🟢 Llamada</span>;
       case 'conectado':
-        return <span className="badge badge-conectado">🟡 Conectado</span>;
+        return <span className="badge badge-conectado">🟡 Conect.</span>;
       case 'desconectado':
-        return <span className="badge badge-desconectado">🔴 Desconectado</span>;
+        return <span className="badge badge-desconectado">🔴 Descon.</span>;
       default:
         return <span className="badge badge-desconocido">⚪ Desconocido</span>;
     }
@@ -81,16 +81,16 @@ function Dashboard({ socket }) {
               <th>Monitor</th>
               <th>DNI</th>
               <th>Estado</th>
-              <th>⏱️ Tiempo en Llamada</th>
-              <th>💤 Tiempo Inactivo</th>
-              <th>📴 Tiempo Desconectado</th>
+              <th>📅 Fecha</th>
+              <th>🕒 Hora</th>
+              <th>⏱️ Tiempo</th>
               <th>Llamada Actual</th>
             </tr>
           </thead>
           <tbody>
             {monitoresActivos.length === 0 ? (
               <tr>
-                <td colSpan="7" className="no-data">
+                <td colSpan="8" className="no-data">
                   No hay monitores conectados
                 </td>
               </tr>
@@ -100,14 +100,10 @@ function Dashboard({ socket }) {
                   <td className="monitor-nombre">{monitor.nombre}</td>
                   <td>{monitor.dni}</td>
                   <td>{getEstadoBadge(monitor.estado)}</td>
-                  <td className={`tiempo-llamada ${monitor.estado === 'en_llamada' ? 'tiempo-activo' : ''}`}>
-                    {formatearTiempo(monitor.tiempoEnLlamada)}
-                  </td>
-                  <td className={`tiempo-inactivo ${monitor.estado === 'conectado' ? 'tiempo-activo' : ''}`}>
-                    {formatearTiempo(monitor.tiempoInactivo)}
-                  </td>
-                  <td className={`tiempo-desconectado ${monitor.estado === 'desconectado' ? 'tiempo-activo' : ''}`}>
-                    {formatearTiempo(monitor.tiempoDesconectado)}
+                  <td>{monitor.fechaEstado || '-'}</td>
+                  <td>{monitor.horaEstado || '-'}</td>
+                  <td className={`tiempo-estado tiempo-activo`}>
+                    {formatearTiempo(monitor.tiempoEnEstado || 0)}
                   </td>
                   <td className="llamada-actual">
                     {monitor.llamadaActual || '-'}

@@ -56,6 +56,68 @@ const dbConfig = {
 // Middleware: Permite que Express lea peticiones con formato JSON
 app.use(express.json());
 
+// =====================================================
+// SQL: Asegurar tabla de historial de estados (persistencia)
+// =====================================================
+async function ensureEstadosTable() {
+  try {
+    const pool = await sql.connect(dbConfig);
+    await pool.request().query(`
+      IF NOT EXISTS (
+        SELECT 1 FROM sys.objects 
+        WHERE object_id = OBJECT_ID('[Partner].[mo].[Monitores_Estados_Hist]') AND type in ('U')
+      )
+      BEGIN
+        CREATE TABLE [Partner].[mo].[Monitores_Estados_Hist] (
+          ID INT IDENTITY(1,1) PRIMARY KEY,
+          DNIMonitor VARCHAR(20) NOT NULL,
+          NombreMonitor NVARCHAR(200) NOT NULL,
+          Estado VARCHAR(32) NOT NULL, -- 'conectado' | 'en_llamada' | 'desconectado'
+          InicioEstado DATETIME NOT NULL DEFAULT(GETDATE()),
+          FinEstado DATETIME NULL,
+          DuracionSegundos INT NULL,
+          LlamadaIdLargo VARCHAR(100) NULL,
+          CreadoEn DATETIME NOT NULL DEFAULT(GETDATE())
+        );
+        CREATE INDEX IX_MonEst_DNI ON [Partner].[mo].[Monitores_Estados_Hist](DNIMonitor);
+        CREATE INDEX IX_MonEst_Inicio ON [Partner].[mo].[Monitores_Estados_Hist](InicioEstado);
+      END
+    `);
+  } catch (err) {
+    console.error('Error asegurando tabla de estados:', err);
+  }
+}
+
+async function registrarCambioEstado({ dni, nombre, estado, llamadaId }) {
+  try {
+    const pool = await sql.connect(dbConfig);
+    const request = pool.request();
+    // Cerrar estado previo abierto
+    await request
+      .input('dni', sql.VarChar, dni)
+      .query(`
+        UPDATE [Partner].[mo].[Monitores_Estados_Hist]
+        SET FinEstado = GETDATE(),
+            DuracionSegundos = DATEDIFF(SECOND, InicioEstado, GETDATE())
+        WHERE DNIMonitor = @dni AND FinEstado IS NULL;
+      `);
+
+    // Abrir nuevo estado
+    await pool.request()
+      .input('dni', sql.VarChar, dni)
+      .input('nombre', sql.NVarChar, nombre)
+      .input('estado', sql.VarChar, estado)
+      .input('llamadaId', sql.VarChar, llamadaId || null)
+      .query(`
+        INSERT INTO [Partner].[mo].[Monitores_Estados_Hist]
+          (DNIMonitor, NombreMonitor, Estado, InicioEstado, LlamadaIdLargo)
+        VALUES (@dni, @nombre, @estado, GETDATE(), @llamadaId);
+      `);
+  } catch (err) {
+    console.error('Error registrando cambio de estado:', err);
+  }
+}
+
 // Ruta de prueba (Endpoint)
 app.get('/api/saludo', (req, res) => {
   res.json({ message: '¡Hola desde el Backend de Node.js!' });
@@ -176,7 +238,14 @@ app.post('/api/guardar-monitoreo', async (req, res) => {
     } = req.body;
 
     // Validaciones
-    if (!dniMonitor || !nombreMonitor || !llamada || !fechaHoraInicio || !fechaHoraFin || !tiempoSegundos) {
+    if (
+      !dniMonitor ||
+      !nombreMonitor ||
+      !llamada ||
+      !fechaHoraInicio ||
+      !fechaHoraFin ||
+      tiempoSegundos === undefined || tiempoSegundos === null
+    ) {
       return res.status(400).json({ error: 'Faltan datos requeridos' });
     }
 
@@ -204,7 +273,7 @@ app.post('/api/guardar-monitoreo', async (req, res) => {
            CampañaAuditada, ColaAuditada, FechaHoraInicio, FechaHoraFin, TiempoMonitoreoSegundos)
         VALUES
           (@dniMonitor, @nombreMonitor, @idLlamadaLargo, @numeroLlamada, @fechaLlamada,
-           @horaLlamada, @duracionLlamada, @agenteAuditado, @dniEmpleadoAuditado,
+           @horaLlamada, @duracionLlamada, @agenteAuditado, LEFT(@dniEmpleadoAuditado, 8),
            @campanaAuditada, @colaAuditada, GETDATE() - CAST(@tiempoSegundos AS FLOAT) / 86400.0, GETDATE(), @tiempoSegundos);
         
         SELECT SCOPE_IDENTITY() AS ID;
@@ -350,6 +419,205 @@ app.get('/api/historial-general', async (req, res) => {
   }
 });
 
+// =====================================================
+// REPORTES - Rendimiento por monitor (día y rango)
+// =====================================================
+
+// Helper: parsear fecha YYYY-MM-DD a inicio y fin (fin excluyente)
+function getDiaRango(fechaStr) {
+  const inicio = new Date(`${fechaStr}T00:00:00`);
+  const fin = new Date(inicio.getTime() + 24 * 3600 * 1000); // +1 día
+  return { inicio, fin };
+}
+
+// GET /api/reporte/monitor-dia?dni=...&fecha=YYYY-MM-DD
+app.get('/api/reporte/monitor-dia', async (req, res) => {
+  try {
+    const { dni, fecha } = req.query;
+    if (!dni || !fecha) {
+      return res.status(400).json({ error: 'Parámetros requeridos: dni, fecha' });
+    }
+
+    const { inicio, fin } = getDiaRango(fecha);
+
+    const pool = await sql.connect(dbConfig);
+
+    // Obtener nombre del monitor (último registro disponible)
+    const nombreRes = await pool.request()
+      .input('dni', sql.VarChar, dni)
+      .query(`
+        SELECT TOP 1 NombreMonitor
+        FROM (
+          SELECT NombreMonitor, FechaHoraInicio AS ts
+          FROM [Partner].[mo].[Historial_Monitoreos]
+          WHERE DNIMonitor = @dni
+          UNION ALL
+          SELECT NombreMonitor, InicioEstado AS ts
+          FROM [Partner].[mo].[Monitores_Estados_Hist]
+          WHERE DNIMonitor = @dni
+        ) t
+        ORDER BY ts DESC;
+      `);
+
+    // Llamadas del día
+    const llamadas = await pool.request()
+      .input('dni', sql.VarChar, dni)
+      .input('inicio', sql.DateTime, inicio)
+      .input('fin', sql.DateTime, fin)
+      .query(`
+        SELECT COUNT(*) AS totalLlamadas,
+               ISNULL(SUM(TiempoMonitoreoSegundos),0) AS tiempoMonitoreoSegundos
+        FROM [Partner].[mo].[Historial_Monitoreos]
+        WHERE DNIMonitor = @dni
+          AND FechaHoraInicio >= @inicio
+          AND FechaHoraInicio < @fin;
+      `);
+
+    const detalleLlamadas = await pool.request()
+      .input('dni', sql.VarChar, dni)
+      .input('inicio', sql.DateTime, inicio)
+      .input('fin', sql.DateTime, fin)
+      .query(`
+        SELECT ID, ID_Llamada_Largo, NumeroLlamada, AgenteAuditado, CampañaAuditada, ColaAuditada,
+               FechaHoraInicio, FechaHoraFin, TiempoMonitoreoSegundos
+        FROM [Partner].[mo].[Historial_Monitoreos]
+        WHERE DNIMonitor = @dni
+          AND FechaHoraInicio >= @inicio
+          AND FechaHoraInicio < @fin
+        ORDER BY FechaHoraInicio ASC;
+      `);
+
+    // Estados: calcular segundos por intersección con el rango
+    const estados = await pool.request()
+      .input('dni', sql.VarChar, dni)
+      .input('inicio', sql.DateTime, inicio)
+      .input('fin', sql.DateTime, fin)
+      .query(`
+        SELECT Estado,
+               SUM(
+                 DATEDIFF(SECOND,
+                   CASE WHEN InicioEstado < @inicio THEN @inicio ELSE InicioEstado END,
+                   CASE WHEN ISNULL(FinEstado, GETDATE()) > @fin THEN @fin ELSE ISNULL(FinEstado, GETDATE()) END
+                 )
+               ) AS segundos
+        FROM [Partner].[mo].[Monitores_Estados_Hist]
+        WHERE DNIMonitor = @dni
+          AND ISNULL(FinEstado, GETDATE()) > @inicio
+          AND InicioEstado < @fin
+        GROUP BY Estado;
+      `);
+
+    const tiempoPorEstado = { conectado: 0, en_llamada: 0, desconectado: 0 };
+    estados.recordset.forEach(r => {
+      const s = Math.max(0, r.segundos || 0);
+      if (tiempoPorEstado.hasOwnProperty(r.Estado)) tiempoPorEstado[r.Estado] = s;
+    });
+
+    res.json({
+      rango: { inicio, fin },
+      dni,
+      nombre: nombreRes.recordset[0]?.NombreMonitor || '',
+      resumen: {
+        totalLlamadas: llamadas.recordset[0].totalLlamadas,
+        tiempoMonitoreoSegundos: llamadas.recordset[0].tiempoMonitoreoSegundos,
+        tiempoEnLlamadaSegundos: tiempoPorEstado['en_llamada'] || 0,
+        tiempoConectadoSegundos: tiempoPorEstado['conectado'] || 0,
+        tiempoDesconectadoSegundos: tiempoPorEstado['desconectado'] || 0
+      },
+      llamadas: detalleLlamadas.recordset
+    });
+  } catch (error) {
+    console.error('Error en reporte monitor-dia:', error);
+    res.status(500).json({ error: 'Error al obtener reporte', detalle: error.message });
+  }
+});
+
+// GET /api/reporte/monitor-rango?dni=...&inicio=YYYY-MM-DD&fin=YYYY-MM-DD
+app.get('/api/reporte/monitor-rango', async (req, res) => {
+  try {
+    const { dni, inicio: inicioStr, fin: finStr } = req.query;
+    if (!dni || !inicioStr || !finStr) {
+      return res.status(400).json({ error: 'Parámetros requeridos: dni, inicio, fin' });
+    }
+
+    const inicio = new Date(`${inicioStr}T00:00:00`);
+    const fin = new Date(`${finStr}T00:00:00`);
+
+    const pool = await sql.connect(dbConfig);
+
+    // Obtener nombre del monitor (último registro disponible)
+    const nombreRes = await pool.request()
+      .input('dni', sql.VarChar, dni)
+      .query(`
+        SELECT TOP 1 NombreMonitor
+        FROM (
+          SELECT NombreMonitor, FechaHoraInicio AS ts
+          FROM [Partner].[mo].[Historial_Monitoreos]
+          WHERE DNIMonitor = @dni
+          UNION ALL
+          SELECT NombreMonitor, InicioEstado AS ts
+          FROM [Partner].[mo].[Monitores_Estados_Hist]
+          WHERE DNIMonitor = @dni
+        ) t
+        ORDER BY ts DESC;
+      `);
+
+    const llamadas = await pool.request()
+      .input('dni', sql.VarChar, dni)
+      .input('inicio', sql.DateTime, inicio)
+      .input('fin', sql.DateTime, fin)
+      .query(`
+        SELECT COUNT(*) AS totalLlamadas,
+               ISNULL(SUM(TiempoMonitoreoSegundos),0) AS tiempoMonitoreoSegundos
+        FROM [Partner].[mo].[Historial_Monitoreos]
+        WHERE DNIMonitor = @dni
+          AND FechaHoraInicio >= @inicio
+          AND FechaHoraInicio < @fin;
+      `);
+
+    const estados = await pool.request()
+      .input('dni', sql.VarChar, dni)
+      .input('inicio', sql.DateTime, inicio)
+      .input('fin', sql.DateTime, fin)
+      .query(`
+        SELECT Estado,
+               SUM(
+                 DATEDIFF(SECOND,
+                   CASE WHEN InicioEstado < @inicio THEN @inicio ELSE InicioEstado END,
+                   CASE WHEN ISNULL(FinEstado, GETDATE()) > @fin THEN @fin ELSE ISNULL(FinEstado, GETDATE()) END
+                 )
+               ) AS segundos
+        FROM [Partner].[mo].[Monitores_Estados_Hist]
+        WHERE DNIMonitor = @dni
+          AND ISNULL(FinEstado, GETDATE()) > @inicio
+          AND InicioEstado < @fin
+        GROUP BY Estado;
+      `);
+
+    const tiempoPorEstado = { conectado: 0, en_llamada: 0, desconectado: 0 };
+    estados.recordset.forEach(r => {
+      const s = Math.max(0, r.segundos || 0);
+      if (tiempoPorEstado.hasOwnProperty(r.Estado)) tiempoPorEstado[r.Estado] = s;
+    });
+
+    res.json({
+      rango: { inicio, fin },
+      dni,
+      nombre: nombreRes.recordset[0]?.NombreMonitor || '',
+      resumen: {
+        totalLlamadas: llamadas.recordset[0].totalLlamadas,
+        tiempoMonitoreoSegundos: llamadas.recordset[0].tiempoMonitoreoSegundos,
+        tiempoEnLlamadaSegundos: tiempoPorEstado['en_llamada'] || 0,
+        tiempoConectadoSegundos: tiempoPorEstado['conectado'] || 0,
+        tiempoDesconectadoSegundos: tiempoPorEstado['desconectado'] || 0
+      }
+    });
+  } catch (error) {
+    console.error('Error en reporte monitor-rango:', error);
+    res.status(500).json({ error: 'Error al obtener reporte', detalle: error.message });
+  }
+});
+
 // Endpoint de login para monitores y jefa
 app.post('/api/login', async (req, res) => {
   try {
@@ -429,6 +697,7 @@ io.on('connection', (socket) => {
       rol,
       estado: 'conectado', // Estados: conectado, en_llamada, desconectado
       conectadoDesde: Date.now(),
+      estadoDesde: Date.now(),
       tiempoEnLlamada: 0,
       tiempoInactivo: 0,
       socketId: socket.id,
@@ -445,6 +714,9 @@ io.on('connection', (socket) => {
       console.log('👤 Monitor unido a sala_monitores');
     }
 
+    // Persistir cambio de estado
+    registrarCambioEstado({ dni, nombre, estado: 'conectado', llamadaId: null });
+
     // Enviar lista actualizada de monitores a la jefa
     emitirEstadoMonitoresAJefa();
   });
@@ -460,10 +732,14 @@ io.on('connection', (socket) => {
         id: llamadaId,
         inicioMonitoreo: Date.now()
       };
+      monitor.estadoDesde = Date.now();
       monitor.ultimaActualizacion = Date.now();
       
       console.log(`▶️ Monitor ${monitor.nombre} inició monitoreo de llamada ${llamadaId}`);
       
+      // Persistir cambio de estado
+      registrarCambioEstado({ dni: monitor.dni, nombre: monitor.nombre, estado: 'en_llamada', llamadaId: llamadaId });
+
       // Notificar a la jefa
       emitirEstadoMonitoresAJefa();
     }
@@ -481,11 +757,15 @@ io.on('connection', (socket) => {
       monitor.estado = 'conectado';
       monitor.tiempoEnLlamada += tiempoMonitoreo;
       monitor.llamadaActual = null;
+      monitor.estadoDesde = Date.now();
       monitor.ultimaActualizacion = Date.now();
       monitor.conectadoDesde = Date.now(); // Resetear tiempo de conexión para tiempo inactivo
       
       console.log(`⏹️ Monitor ${monitor.nombre} finalizó monitoreo (${tiempoMonitoreo}s)`);
       
+      // Persistir cambio de estado
+      registrarCambioEstado({ dni: monitor.dni, nombre: monitor.nombre, estado: 'conectado', llamadaId: null });
+
       // Notificar a la jefa
       emitirEstadoMonitoresAJefa();
     }
@@ -517,10 +797,14 @@ io.on('connection', (socket) => {
     for (const [dni, monitor] of monitores.entries()) {
       if (monitor.socketId === socket.id) {
         monitor.estado = 'desconectado';
+        monitor.estadoDesde = Date.now();
         monitor.ultimaActualizacion = Date.now();
         
         console.log(`👤 Monitor desconectado: ${monitor.nombre}`);
         
+        // Persistir cambio de estado
+        registrarCambioEstado({ dni: monitor.dni, nombre: monitor.nombre, estado: 'desconectado', llamadaId: null });
+
         // Notificar a la jefa
         emitirEstadoMonitoresAJefa();
         break;
@@ -538,6 +822,8 @@ function emitirEstadoMonitoresAJefa() {
     let tiempoEnLlamada = 0;
     let tiempoInactivo = 0;
     let tiempoDesconectado = 0;
+    const estadoDesde = monitor.estadoDesde || monitor.conectadoDesde || ahora;
+    const segundosEnEstado = Math.max(0, Math.floor((ahora - estadoDesde) / 1000));
     
     // Solo calcular el tiempo del estado actual
     switch (monitor.estado) {
@@ -558,6 +844,15 @@ function emitirEstadoMonitoresAJefa() {
         break;
     }
     
+    // Formatear fecha/hora del cambio de estado
+    const fechaEstadoDate = new Date(estadoDesde);
+    const yyyy = fechaEstadoDate.getFullYear();
+    const mm = String(fechaEstadoDate.getMonth() + 1).padStart(2, '0');
+    const dd = String(fechaEstadoDate.getDate()).padStart(2, '0');
+    const HH = String(fechaEstadoDate.getHours()).padStart(2, '0');
+    const MM = String(fechaEstadoDate.getMinutes()).padStart(2, '0');
+    const SS = String(fechaEstadoDate.getSeconds()).padStart(2, '0');
+
     return {
       dni: monitor.dni,
       nombre: monitor.nombre,
@@ -566,7 +861,10 @@ function emitirEstadoMonitoresAJefa() {
       tiempoEnLlamada,
       tiempoInactivo,
       tiempoDesconectado,
-      llamadaActual: monitor.llamadaActual?.id || null
+      llamadaActual: monitor.llamadaActual?.id || null,
+      fechaEstado: `${dd}/${mm}/${yyyy}`,
+      horaEstado: `${HH}:${MM}:${SS}`,
+      tiempoEnEstado: segundosEnEstado
     };
   });
   
