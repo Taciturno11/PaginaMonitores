@@ -179,7 +179,24 @@ app.post('/api/llamada-aleatoria', async (req, res) => {
   try {
     const pool = await sql.connect(dbConfig);
     
-    const { fechaInicio, fechaFin, campana, agente, idLargo, cola } = req.body;
+    const { fechaInicio, fechaFin, campana, agente, idLargo, cola, dniUsuario } = req.body;
+    
+    // Si el usuario es monitor con campañas asignadas, usar siempre sus campañas
+    let campanaFiltro = campana;
+    if (dniUsuario && campañasAsignadas[dniUsuario]) {
+      // Si no se especifica campaña (opción por defecto), usar todas las campañas asignadas
+      if (!campana) {
+        campanaFiltro = campañasAsignadas[dniUsuario];
+      } else {
+        // Si se especifica una campaña específica, verificar que esté en sus campañas asignadas
+        if (campañasAsignadas[dniUsuario].includes(campana)) {
+          campanaFiltro = campana; // Mantener como string, no como array
+        } else {
+          // Si la campaña no está asignada, usar todas las campañas asignadas
+          campanaFiltro = campañasAsignadas[dniUsuario];
+        }
+      }
+    }
     
     // Construir query con filtros opcionales
     let query = `
@@ -203,9 +220,19 @@ app.post('/api/llamada-aleatoria', async (req, res) => {
       params.push({ name: 'fechaFin', type: sql.Date, value: fechaFin });
     }
     
-    if (campana) {
-      query += ` AND Campaña_Agente = @campana`;
-      params.push({ name: 'campana', type: sql.NVarChar, value: campana });
+    if (campanaFiltro) {
+      if (Array.isArray(campanaFiltro)) {
+        // Si es un array de campañas, usar IN
+        const placeholders = campanaFiltro.map((_, index) => `@campana${index}`).join(', ');
+        query += ` AND Campaña_Agente IN (${placeholders})`;
+        campanaFiltro.forEach((camp, index) => {
+          params.push({ name: `campana${index}`, type: sql.NVarChar, value: camp });
+        });
+      } else {
+        // Si es una sola campaña, usar igualdad
+        query += ` AND Campaña_Agente = @campana`;
+        params.push({ name: 'campana', type: sql.NVarChar, value: campanaFiltro });
+      }
     }
     
     if (agente) {
@@ -668,6 +695,15 @@ app.get('/api/reporte/monitor-rango', async (req, res) => {
   }
 });
 
+// Mapeo de campañas asignadas por monitor
+const campañasAsignadas = {
+  '44037525': ['Crosselling', 'Hogar'],      // Andrea Morelia Tejeda Salinas
+  '72853980': ['Crosselling', 'Renovacion'], // Evelyn Betzabeth Villa Aramburú
+  '48802135': ['Migracion'],                  // Jeanpaul Aguilar Perez
+  '76081717': ['Portabilidad Pospago'],       // Yadhira Margarita Vasquez P.
+  '007332055': ['Portabilidad Prepago']      // Emmanuel Alejandro Lavin G.
+};
+
 // Endpoint de login para monitores y jefa
 app.post('/api/login', async (req, res) => {
   try {
@@ -713,12 +749,16 @@ app.post('/api/login', async (req, res) => {
     // Determinar el rol
     const rol = empleado.DNI === '76157106' ? 'jefa' : 'monitor';
     
+    // Obtener campañas asignadas (solo para monitores)
+    const campañasAsignadasArray = rol === 'monitor' ? campañasAsignadas[empleado.DNI] : null;
+    
     res.json({
       success: true,
       usuario: {
         dni: empleado.DNI,
         nombre: `${empleado.Nombres} ${empleado.ApellidoPaterno} ${empleado.ApellidoMaterno}`,
-        rol: rol
+        rol: rol,
+        campañasAsignadas: campañasAsignadasArray
       }
     });
   } catch (error) {

@@ -182,12 +182,17 @@ function App() {
     setTiempoFinal(null);
 
     try {
+      const payload = {
+        ...filtros,
+        dniUsuario: usuario?.dni
+      };
+      
       const response = await fetch(`${API_URL}/api/llamada-aleatoria`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(filtros)
+        body: JSON.stringify(payload)
       });
 
       if (!response.ok) {
@@ -367,16 +372,40 @@ function App() {
 
             <div className="filtro-item">
               <label>Campaña:</label>
-              <select 
-                name="campana"
-                value={filtros.campana}
-                onChange={handleInputChange}
-              >
-                <option value="">Todas</option>
-                {opciones.campanas.map(c => (
-                  <option key={c} value={c}>{c}</option>
-                ))}
-              </select>
+              {usuario?.campañasAsignadas && usuario.campañasAsignadas.length > 1 ? (
+                <select 
+                  name="campana"
+                  value={filtros.campana}
+                  onChange={handleInputChange}
+                >
+                  <option value="">{usuario.campañasAsignadas.join(' + ')}</option>
+                  {usuario.campañasAsignadas.map(campana => (
+                    <option key={campana} value={campana}>{campana}</option>
+                  ))}
+                </select>
+              ) : usuario?.campañasAsignadas ? (
+                <div style={{ 
+                  padding: '8px 12px', 
+                  border: '1px solid #ddd', 
+                  borderRadius: '4px', 
+                  backgroundColor: '#f9f9f9',
+                  color: '#333',
+                  fontSize: '14px'
+                }}>
+                  {usuario.campañasAsignadas.join(', ')}
+                </div>
+              ) : (
+                <select 
+                  name="campana"
+                  value={filtros.campana}
+                  onChange={handleInputChange}
+                >
+                  <option value="">Todas</option>
+                  {opciones.campanas.map(c => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
+              )}
             </div>
 
             <div className="filtro-item">
