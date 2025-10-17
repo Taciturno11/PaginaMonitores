@@ -2,13 +2,33 @@ import { useState, useEffect } from 'react'
 import './HistorialGeneral.css'
 
 function HistorialGeneral() {
+  // Obtener fechas por defecto
+  const obtenerFechasPorDefecto = () => {
+    const hoy = new Date();
+    const primerDiaMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+    
+    // Formatear fechas a YYYY-MM-DD
+    const formatearFecha = (fecha) => {
+      const year = fecha.getFullYear();
+      const month = String(fecha.getMonth() + 1).padStart(2, '0');
+      const day = String(fecha.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+    
+    return {
+      fechaInicio: formatearFecha(primerDiaMes),
+      fechaFin: formatearFecha(hoy)
+    };
+  };
+
   const [historial, setHistorial] = useState([]);
   const [historialFiltrado, setHistorialFiltrado] = useState([]);
   const [estadisticas, setEstadisticas] = useState(null);
   const [loading, setLoading] = useState(true);
+  const fechasDefecto = obtenerFechasPorDefecto();
   const [filtros, setFiltros] = useState({
-    fechaInicio: '',
-    fechaFin: '',
+    fechaInicio: fechasDefecto.fechaInicio,
+    fechaFin: fechasDefecto.fechaFin,
     monitor: ''
   });
 
@@ -31,7 +51,29 @@ function HistorialGeneral() {
     }
   };
 
+  // Cargar historial y filtros guardados al montar
   useEffect(() => {
+    // Cargar filtros guardados, si no hay usar fechas por defecto
+    const filtrosGuardados = sessionStorage.getItem('historialGeneralFiltros');
+    if (filtrosGuardados) {
+      try {
+        const filtrosParsed = JSON.parse(filtrosGuardados);
+        setFiltros(filtrosParsed);
+      } catch (e) {
+        console.error('Error al cargar filtros guardados:', e);
+        // Si hay error, usar fechas por defecto
+        const fechasDefecto = obtenerFechasPorDefecto();
+        setFiltros({
+          fechaInicio: fechasDefecto.fechaInicio,
+          fechaFin: fechasDefecto.fechaFin,
+          monitor: ''
+        });
+      }
+    } else {
+      // Si no hay filtros guardados, guardar los valores por defecto
+      sessionStorage.setItem('historialGeneralFiltros', JSON.stringify(filtros));
+    }
+    
     cargarHistorial();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -52,9 +94,6 @@ function HistorialGeneral() {
           ? item.FechaHoraInicio.split('T')[0] 
           : new Date(item.FechaHoraInicio).toISOString().split('T')[0];
         
-        // Debug: mostrar comparación
-        console.log(`[HistorialGeneral] Comparando: ${fechaItem} >= ${filtros.fechaInicio} = ${fechaItem >= filtros.fechaInicio}`);
-        
         return fechaItem >= filtros.fechaInicio;
       });
     }
@@ -66,9 +105,6 @@ function HistorialGeneral() {
         const fechaItem = item.FechaHoraInicio.includes('T') 
           ? item.FechaHoraInicio.split('T')[0] 
           : new Date(item.FechaHoraInicio).toISOString().split('T')[0];
-        
-        // Debug: mostrar comparación
-        console.log(`[HistorialGeneral] Comparando: ${fechaItem} <= ${filtros.fechaFin} = ${fechaItem <= filtros.fechaFin}`);
         
         return fechaItem <= filtros.fechaFin;
       });
@@ -87,18 +123,25 @@ function HistorialGeneral() {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFiltros(prev => ({
-      ...prev,
+    const nuevosFiltros = {
+      ...filtros,
       [name]: value
-    }));
+    };
+    setFiltros(nuevosFiltros);
+    // Guardar filtros en sessionStorage
+    sessionStorage.setItem('historialGeneralFiltros', JSON.stringify(nuevosFiltros));
   };
 
   const limpiarFiltros = () => {
-    setFiltros({
-      fechaInicio: '',
-      fechaFin: '',
+    const fechasDefecto = obtenerFechasPorDefecto();
+    const filtrosLimpios = {
+      fechaInicio: fechasDefecto.fechaInicio,
+      fechaFin: fechasDefecto.fechaFin,
       monitor: ''
-    });
+    };
+    setFiltros(filtrosLimpios);
+    // Guardar filtros por defecto
+    sessionStorage.setItem('historialGeneralFiltros', JSON.stringify(filtrosLimpios));
   };
 
   const formatearTiempo = (segundos) => {

@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import { io } from 'socket.io-client'
 import './HistorialGeneral.css'
 import './Reporte.css'
 
@@ -15,64 +14,39 @@ function Reporte() {
   const [error, setError] = useState('')
   const [reporte, setReporte] = useState(null)
 
-  // Cargar último reporte desde localStorage al montar el componente
+  // Cargar último reporte desde sessionStorage al montar el componente
   useEffect(() => {
-    const ultimoReporte = localStorage.getItem('ultimoReporte')
-    if (ultimoReporte) {
+    const datosReporte = sessionStorage.getItem('reporteActual')
+    if (datosReporte) {
       try {
-        const datos = JSON.parse(ultimoReporte)
-        setReporte(datos.reporte)
-        setDni(datos.dni)
-        setTipo(datos.tipo)
-        setFecha(datos.fecha || '')
-        setInicio(datos.inicio || '')
-        setFin(datos.fin || '')
+        const datos = JSON.parse(datosReporte)
+        if (datos.dni) setDni(datos.dni)
+        if (datos.tipo) setTipo(datos.tipo)
+        if (datos.fecha) setFecha(datos.fecha)
+        if (datos.inicio) setInicio(datos.inicio)
+        if (datos.fin) setFin(datos.fin)
+        if (datos.reporte) setReporte(datos.reporte)
       } catch (e) {
-        console.error('Error al cargar último reporte:', e)
+        console.error('Error al cargar reporte guardado:', e)
+        sessionStorage.removeItem('reporteActual')
       }
     }
   }, [])
 
-  // WebSocket para actualización en tiempo real
+  // Guardar cambios en los filtros
   useEffect(() => {
-    const socket = io(API_URL)
-    
-    // Unirse a la sala de jefa para recibir actualizaciones
-    socket.emit('usuario_conectado', { dni: 'jefa', nombre: 'Jefa', rol: 'jefa' })
-    
-    socket.on('estado_monitores', (data) => {
-      console.log('📡 Datos recibidos del WebSocket:', data)
-      
-      // Actualizar KPIs en tiempo real si tenemos un reporte activo
-      if (reporte && dni) {
-        const monitorActual = data.find(m => m.dni === dni)
-        if (monitorActual) {
-          console.log('🎯 Monitor encontrado para actualización:', monitorActual)
-          
-          // Actualizar solo los datos de estado en tiempo real
-          setReporte(prevReporte => ({
-            ...prevReporte,
-            resumen: {
-              ...prevReporte.resumen,
-              // Mantener llamadas totales del historial, pero actualizar tiempos de estado
-              tiempoEnLlamadaSegundos: monitorActual.tiempoEnLlamada || 0,
-              tiempoConectadoSegundos: monitorActual.tiempoInactivo || 0,
-              tiempoDesconectadoSegundos: monitorActual.tiempoDesconectado || 0
-            },
-            // Actualizar estado actual
-            estadoActual: monitorActual.estado,
-            fechaEstado: monitorActual.fechaEstado,
-            horaEstado: monitorActual.horaEstado,
-            tiempoEnEstado: monitorActual.tiempoEnEstado
-          }))
-        }
+    if (dni || tipo || fecha || inicio || fin) {
+      const datosActuales = {
+        dni,
+        tipo,
+        fecha,
+        inicio,
+        fin,
+        reporte
       }
-    })
-
-    return () => {
-      socket.disconnect()
+      sessionStorage.setItem('reporteActual', JSON.stringify(datosActuales))
     }
-  }, [reporte, dni, API_URL])
+  }, [dni, tipo, fecha, inicio, fin, reporte])
 
   const formatearTiempo = (segundos) => {
     const horas = Math.floor(segundos / 3600)
@@ -114,7 +88,7 @@ function Reporte() {
       if (!res.ok) throw new Error(data.error || 'Error en reporte')
       setReporte(data)
       
-      // Guardar en localStorage para persistir al refrescar
+      // Guardar en sessionStorage para persistir al cambiar de módulo
       const datosPersistir = {
         reporte: data,
         dni,
@@ -123,7 +97,7 @@ function Reporte() {
         inicio,
         fin
       }
-      localStorage.setItem('ultimoReporte', JSON.stringify(datosPersistir))
+      sessionStorage.setItem('reporteActual', JSON.stringify(datosPersistir))
     } catch (e) {
       setError(e.message)
     } finally {
@@ -207,10 +181,109 @@ function Reporte() {
                 {reporte.nombre && (
                   <div className="nombre-monitor">
                     {reporte.nombre}
-                    <span className="live-indicator">● LIVE</span>
                   </div>
                 )}
                 <div className="avatar-circle">👩‍💻</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Gráficos */}
+          <div className="graficos-container">
+            <h3>📊 Análisis Visual</h3>
+            
+            <div className="graficos-grid">
+              {/* Gráfico de Tiempos */}
+              <div className="grafico-card">
+                <h4>⏱️ Distribución de Tiempo</h4>
+                <div className="chart-bars">
+                  <div className="bar-item">
+                    <div className="bar-label">En Llamada</div>
+                    <div className="bar-wrapper">
+                      <div 
+                        className="bar bar-green" 
+                        style={{ 
+                          width: `${(reporte.resumen.tiempoEnLlamadaSegundos / (reporte.resumen.tiempoEnLlamadaSegundos + reporte.resumen.tiempoConectadoSegundos + reporte.resumen.tiempoDesconectadoSegundos)) * 100}%` 
+                        }}
+                      >
+                        <span className="bar-value">{formatearTiempo(reporte.resumen.tiempoEnLlamadaSegundos)}</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="bar-item">
+                    <div className="bar-label">Conectado</div>
+                    <div className="bar-wrapper">
+                      <div 
+                        className="bar bar-yellow" 
+                        style={{ 
+                          width: `${(reporte.resumen.tiempoConectadoSegundos / (reporte.resumen.tiempoEnLlamadaSegundos + reporte.resumen.tiempoConectadoSegundos + reporte.resumen.tiempoDesconectadoSegundos)) * 100}%` 
+                        }}
+                      >
+                        <span className="bar-value">{formatearTiempo(reporte.resumen.tiempoConectadoSegundos)}</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="bar-item">
+                    <div className="bar-label">Desconectado</div>
+                    <div className="bar-wrapper">
+                      <div 
+                        className="bar bar-red" 
+                        style={{ 
+                          width: `${(reporte.resumen.tiempoDesconectadoSegundos / (reporte.resumen.tiempoEnLlamadaSegundos + reporte.resumen.tiempoConectadoSegundos + reporte.resumen.tiempoDesconectadoSegundos)) * 100}%` 
+                        }}
+                      >
+                        <span className="bar-value">{formatearTiempo(reporte.resumen.tiempoDesconectadoSegundos)}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Indicadores de Productividad */}
+              <div className="grafico-card">
+                <h4>📈 Indicadores</h4>
+                <div className="indicadores-grid">
+                  <div className="indicador-item">
+                    <div className="indicador-icon">📞</div>
+                    <div className="indicador-info">
+                      <div className="indicador-label">Total Llamadas</div>
+                      <div className="indicador-value">{reporte.resumen.totalLlamadas}</div>
+                    </div>
+                  </div>
+                  
+                  <div className="indicador-item">
+                    <div className="indicador-icon">⏱️</div>
+                    <div className="indicador-info">
+                      <div className="indicador-label">Tiempo Promedio</div>
+                      <div className="indicador-value">
+                        {reporte.resumen.totalLlamadas > 0 
+                          ? formatearTiempo(Math.floor(reporte.resumen.tiempoMonitoreoSegundos / reporte.resumen.totalLlamadas))
+                          : '0m 0s'
+                        }
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="indicador-item">
+                    <div className="indicador-icon">🎯</div>
+                    <div className="indicador-info">
+                      <div className="indicador-label">Productividad</div>
+                      <div className="indicador-value">
+                        {((reporte.resumen.tiempoEnLlamadaSegundos / (reporte.resumen.tiempoEnLlamadaSegundos + reporte.resumen.tiempoConectadoSegundos + reporte.resumen.tiempoDesconectadoSegundos)) * 100).toFixed(1)}%
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="indicador-item">
+                    <div className="indicador-icon">⚡</div>
+                    <div className="indicador-info">
+                      <div className="indicador-label">Total Monitoreo</div>
+                      <div className="indicador-value">{formatearTiempo(reporte.resumen.tiempoMonitoreoSegundos)}</div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

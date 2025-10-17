@@ -88,12 +88,42 @@ async function ensureEstadosTable() {
   }
 }
 
-async function registrarCambioEstado({ dni, nombre, estado, llamadaId }) {
+async function registrarCambioEstado({ dni, nombre, estado, llamadaId, rol }) {
   try {
+    // NO registrar estados de la jefa, solo de monitores
+    if (rol === 'jefa') {
+      console.log(`ℹ️ Ignorando registro de estado para la jefa`);
+      return;
+    }
+
     const pool = await sql.connect(dbConfig);
-    const request = pool.request();
+    
+    // Verificar el último estado registrado para este monitor
+    const ultimoEstado = await pool.request()
+      .input('dni', sql.VarChar, dni)
+      .query(`
+        SELECT TOP 1 Estado, InicioEstado
+        FROM [Partner].[mo].[Monitores_Estados_Hist]
+        WHERE DNIMonitor = @dni AND FinEstado IS NULL
+        ORDER BY InicioEstado DESC;
+      `);
+
+    // Si el estado es el mismo y fue registrado hace menos de 5 segundos, no hacer nada
+    if (ultimoEstado.recordset.length > 0) {
+      const estadoActual = ultimoEstado.recordset[0];
+      const segundosDesdeUltimoRegistro = Math.floor(
+        (new Date() - new Date(estadoActual.InicioEstado)) / 1000
+      );
+      
+      // Si es el mismo estado y fue hace menos de 5 segundos, ignorar (evitar duplicados)
+      if (estadoActual.Estado === estado && segundosDesdeUltimoRegistro < 5) {
+        console.log(`⚠️ Registro duplicado evitado para ${nombre} (${estado})`);
+        return;
+      }
+    }
+
     // Cerrar estado previo abierto
-    await request
+    await pool.request()
       .input('dni', sql.VarChar, dni)
       .query(`
         UPDATE [Partner].[mo].[Monitores_Estados_Hist]
@@ -113,6 +143,8 @@ async function registrarCambioEstado({ dni, nombre, estado, llamadaId }) {
           (DNIMonitor, NombreMonitor, Estado, InicioEstado, LlamadaIdLargo)
         VALUES (@dni, @nombre, @estado, GETDATE(), @llamadaId);
       `);
+      
+    console.log(`✅ Estado registrado: ${nombre} → ${estado}`);
   } catch (err) {
     console.error('Error registrando cambio de estado:', err);
   }
@@ -125,6 +157,21 @@ app.get('/api/saludo', (req, res) => {
 
 app.get('/', (req, res) => {
   res.json({ message: 'Bienvenido a mi API' });
+});
+
+// Endpoint para limpiar estado de monitores en memoria (solo desarrollo)
+app.post('/api/dev/limpiar-memoria', (req, res) => {
+  const cantidad = monitores.size;
+  monitores.clear();
+  console.log(`🧹 Memoria limpiada: ${cantidad} monitores removidos`);
+  
+  // Emitir actualización a la jefa
+  emitirEstadoMonitoresAJefa();
+  
+  res.json({ 
+    success: true, 
+    message: `Memoria limpiada correctamente (${cantidad} monitores removidos)` 
+  });
 });
 
 // Endpoint para obtener una llamada aleatoria con filtros
@@ -715,7 +762,7 @@ io.on('connection', (socket) => {
     }
 
     // Persistir cambio de estado
-    registrarCambioEstado({ dni, nombre, estado: 'conectado', llamadaId: null });
+    registrarCambioEstado({ dni, nombre, estado: 'conectado', llamadaId: null, rol });
 
     // Enviar lista actualizada de monitores a la jefa
     emitirEstadoMonitoresAJefa();
@@ -738,7 +785,7 @@ io.on('connection', (socket) => {
       console.log(`▶️ Monitor ${monitor.nombre} inició monitoreo de llamada ${llamadaId}`);
       
       // Persistir cambio de estado
-      registrarCambioEstado({ dni: monitor.dni, nombre: monitor.nombre, estado: 'en_llamada', llamadaId: llamadaId });
+      registrarCambioEstado({ dni: monitor.dni, nombre: monitor.nombre, estado: 'en_llamada', llamadaId: llamadaId, rol: monitor.rol });
 
       // Notificar a la jefa
       emitirEstadoMonitoresAJefa();
@@ -764,7 +811,7 @@ io.on('connection', (socket) => {
       console.log(`⏹️ Monitor ${monitor.nombre} finalizó monitoreo (${tiempoMonitoreo}s)`);
       
       // Persistir cambio de estado
-      registrarCambioEstado({ dni: monitor.dni, nombre: monitor.nombre, estado: 'conectado', llamadaId: null });
+      registrarCambioEstado({ dni: monitor.dni, nombre: monitor.nombre, estado: 'conectado', llamadaId: null, rol: monitor.rol });
 
       // Notificar a la jefa
       emitirEstadoMonitoresAJefa();
@@ -803,7 +850,7 @@ io.on('connection', (socket) => {
         console.log(`👤 Monitor desconectado: ${monitor.nombre}`);
         
         // Persistir cambio de estado
-        registrarCambioEstado({ dni: monitor.dni, nombre: monitor.nombre, estado: 'desconectado', llamadaId: null });
+        registrarCambioEstado({ dni: monitor.dni, nombre: monitor.nombre, estado: 'desconectado', llamadaId: null, rol: monitor.rol });
 
         // Notificar a la jefa
         emitirEstadoMonitoresAJefa();

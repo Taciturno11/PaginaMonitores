@@ -13,7 +13,19 @@ function HistorialPersonal({ usuario }) {
 
   const API_URL = import.meta.env.VITE_API_URL;
 
+  // Cargar historial y filtros guardados al montar
   useEffect(() => {
+    // Cargar filtros guardados
+    const filtrosGuardados = sessionStorage.getItem('historialPersonalFiltros');
+    if (filtrosGuardados) {
+      try {
+        const filtrosParsed = JSON.parse(filtrosGuardados);
+        setFiltros(filtrosParsed);
+      } catch (e) {
+        console.error('Error al cargar filtros guardados:', e);
+      }
+    }
+    
     cargarHistorial();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -51,9 +63,6 @@ function HistorialPersonal({ usuario }) {
           ? item.FechaHoraInicio.split('T')[0] 
           : new Date(item.FechaHoraInicio).toISOString().split('T')[0];
         
-        // Debug: mostrar comparación
-        console.log(`Comparando: ${fechaItem} >= ${filtros.fechaInicio} = ${fechaItem >= filtros.fechaInicio}`);
-        
         return fechaItem >= filtros.fechaInicio;
       });
     }
@@ -66,30 +75,32 @@ function HistorialPersonal({ usuario }) {
           ? item.FechaHoraInicio.split('T')[0] 
           : new Date(item.FechaHoraInicio).toISOString().split('T')[0];
         
-        // Debug: mostrar comparación
-        console.log(`Comparando: ${fechaItem} <= ${filtros.fechaFin} = ${fechaItem <= filtros.fechaFin}`);
-        
         return fechaItem <= filtros.fechaFin;
       });
     }
 
-    console.log(`Resultado final: ${resultado.length} registros`);
     setHistorialFiltrado(resultado);
   };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFiltros(prev => ({
-      ...prev,
+    const nuevosFiltros = {
+      ...filtros,
       [name]: value
-    }));
+    };
+    setFiltros(nuevosFiltros);
+    // Guardar filtros en sessionStorage
+    sessionStorage.setItem('historialPersonalFiltros', JSON.stringify(nuevosFiltros));
   };
 
   const limpiarFiltros = () => {
-    setFiltros({
+    const filtrosVacios = {
       fechaInicio: '',
       fechaFin: ''
-    });
+    };
+    setFiltros(filtrosVacios);
+    // Limpiar filtros guardados
+    sessionStorage.setItem('historialPersonalFiltros', JSON.stringify(filtrosVacios));
   };
 
   const formatearTiempo = (segundos) => {

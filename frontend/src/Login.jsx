@@ -29,8 +29,8 @@ function Login({ onLoginSuccess }) {
         throw new Error(data.error || 'Error al iniciar sesión');
       }
 
-      // Guardar en localStorage
-      localStorage.setItem('usuario', JSON.stringify(data.usuario));
+      // Guardar en sessionStorage (persiste solo en la sesión del tab)
+      sessionStorage.setItem('usuario', JSON.stringify(data.usuario));
       
       // Llamar al callback
       onLoginSuccess(data.usuario);
@@ -61,7 +61,7 @@ function Login({ onLoginSuccess }) {
               onChange={(e) => setDni(e.target.value)}
               placeholder="Ingresa tu DNI"
               required
-              maxLength="8"
+              maxLength="12"
             />
           </div>
 
@@ -74,6 +74,7 @@ function Login({ onLoginSuccess }) {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Ingresa tu DNI como contraseña"
               required
+              maxLength="12"
             />
           </div>
 

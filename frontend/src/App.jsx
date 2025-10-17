@@ -37,11 +37,24 @@ function App() {
   const API_URL = import.meta.env.VITE_API_URL;
   const [socket, setSocket] = useState(null);
 
-  // Verificar si hay usuario en localStorage al cargar
+  // Cargar usuario y módulo activo desde sessionStorage al iniciar
   useEffect(() => {
-    const usuarioGuardado = localStorage.getItem('usuario');
+    const usuarioGuardado = sessionStorage.getItem('usuario');
+    const moduloGuardado = sessionStorage.getItem('moduloActivo');
+    
     if (usuarioGuardado) {
-      setUsuario(JSON.parse(usuarioGuardado));
+      try {
+        setUsuario(JSON.parse(usuarioGuardado));
+        
+        // Restaurar módulo activo si existe
+        if (moduloGuardado) {
+          setModuloActivo(moduloGuardado);
+        }
+      } catch (e) {
+        console.error('Error al cargar datos guardados:', e);
+        sessionStorage.removeItem('usuario');
+        sessionStorage.removeItem('moduloActivo');
+      }
     }
   }, []);
 
@@ -259,15 +272,22 @@ function App() {
   const handleLoginSuccess = (usuarioData) => {
     setUsuario(usuarioData);
     // Establecer módulo inicial según el rol
-    setModuloActivo(usuarioData.rol === 'jefa' ? 'dashboard' : 'monitoreo');
+    const moduloInicial = usuarioData.rol === 'jefa' ? 'dashboard' : 'monitoreo';
+    setModuloActivo(moduloInicial);
+    // Guardar módulo inicial en sessionStorage
+    sessionStorage.setItem('moduloActivo', moduloInicial);
   };
 
   const handleCambiarModulo = (modulo) => {
     setModuloActivo(modulo);
+    // Guardar módulo activo en sessionStorage
+    sessionStorage.setItem('moduloActivo', modulo);
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('usuario');
+    // Limpiar sessionStorage y localStorage
+    sessionStorage.clear();
+    localStorage.clear();
     setUsuario(null);
   };
 
@@ -579,7 +599,7 @@ function App() {
         <header>
           <div className="header-content">
             <div className="header-left">
-              <div>
+      <div>
                 <h1>🎧 Monitor de Llamadas</h1>
                 <p>Sistema de auditoría de llamadas</p>
               </div>
@@ -588,7 +608,7 @@ function App() {
               <div className="user-info">
                 <span className="user-name">{usuario.nombre}</span>
                 <span className="user-rol">{usuario.rol === 'jefa' ? '👑 Jefa' : '👤 Monitor'}</span>
-              </div>
+      </div>
               <button className="btn-logout" onClick={handleLogout}>
                 🚪 Cerrar Sesión
         </button>
@@ -601,7 +621,7 @@ function App() {
         </div>
       </div>
 
-    </div>
+      </div>
   )
 }
 

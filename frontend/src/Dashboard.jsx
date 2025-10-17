@@ -4,11 +4,29 @@ import './Dashboard.css'
 function Dashboard({ socket }) {
   const [monitores, setMonitores] = useState([]);
 
+  // Cargar último estado del dashboard desde sessionStorage
+  useEffect(() => {
+    const dashboardGuardado = sessionStorage.getItem('dashboardActual');
+    if (dashboardGuardado) {
+      try {
+        const datos = JSON.parse(dashboardGuardado);
+        if (datos.monitores && Array.isArray(datos.monitores)) {
+          setMonitores(datos.monitores);
+        }
+      } catch (e) {
+        console.error('Error al cargar dashboard guardado:', e);
+        sessionStorage.removeItem('dashboardActual');
+      }
+    }
+  }, []);
+
   useEffect(() => {
     if (socket) {
       // Escuchar actualizaciones de estado de monitores
       socket.on('estado_monitores', (data) => {
         setMonitores(data);
+        // Guardar en sessionStorage cada vez que se actualiza
+        sessionStorage.setItem('dashboardActual', JSON.stringify({ monitores: data }));
       });
 
       return () => {
