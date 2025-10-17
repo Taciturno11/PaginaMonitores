@@ -97,7 +97,7 @@ header p {
 
 .btn-logout:hover {
   background: white;
-  color: #667eea;
+  color: #6b7280;
 }
 
 .content-layout {
@@ -225,7 +225,7 @@ header p {
 }
 
 .contador-inicial {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
   padding: 20px;
   border-radius: 10px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
@@ -323,7 +323,7 @@ header p {
 .llamada-detalle h2 {
   margin-top: 0;
   color: #333;
-  border-bottom: 2px solid #667eea;
+  border-bottom: 2px solid #6b7280;
   padding-bottom: 10px;
   font-size: 1.5rem;
   margin-bottom: 20px;
@@ -339,12 +339,12 @@ header p {
   background: #f8f9fa;
   padding: 20px;
   border-radius: 10px;
-  border-left: 4px solid #667eea;
+  border-left: 4px solid #6b7280;
 }
 
 .detalle-seccion h3 {
   margin: 0 0 15px 0;
-  color: #667eea;
+  color: #6b7280;
   font-size: 1.1rem;
   font-weight: 600;
 }
