@@ -33,7 +33,7 @@
 .ranking-container h2 {
   margin: 0 0 20px 0;
   color: #333;
-  border-bottom: 2px solid #667eea;
+  border-bottom: 2px solid #6b7280;
   padding-bottom: 10px;
 }
 
@@ -50,7 +50,7 @@
   display: flex;
   align-items: center;
   gap: 15px;
-  border-left: 4px solid #667eea;
+  border-left: 4px solid #6b7280;
 }
 
 .ranking-1 {
@@ -105,7 +105,7 @@
 .filtros-historial h2 {
   margin: 0 0 15px 0;
   color: #333;
-  border-bottom: 2px solid #667eea;
+  border-bottom: 2px solid #6b7280;
   padding-bottom: 10px;
 }
 
@@ -126,7 +126,7 @@
 
 .filtro-busqueda input:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: #6b7280;
 }
 
 .btn-limpiar {
@@ -172,7 +172,7 @@
 }
 
 .historial-table thead {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
   color: white;
 }
 
@@ -207,7 +207,7 @@
 .tiempo-monitoreo {
   font-family: 'Courier New', monospace;
   font-weight: bold;
-  color: #667eea;
+  color: #6b7280;
 }
 
 /* Footer con totales */
@@ -256,7 +256,7 @@
 .historial-header h2 {
   margin: 0;
   color: #333;
-  border-bottom: 2px solid #667eea;
+  border-bottom: 2px solid #6b7280;
   padding-bottom: 10px;
   font-size: 1.3rem;
   flex-shrink: 0;
@@ -281,7 +281,7 @@
 
 .filtro-fecha:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: #6b7280;
 }
 .filtro-fecha::-webkit-calendar-picker-indicator {
   filter: invert(1);
@@ -299,7 +299,7 @@
 
 .filtro-busqueda-inline:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: #6b7280;
 }
 
 .btn-limpiar-inline {

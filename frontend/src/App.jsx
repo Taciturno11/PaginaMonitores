@@ -8,6 +8,7 @@ import HistorialGeneral from './HistorialGeneral'
 import Reporte from './Reporte'
 import FormularioEvaluacion from './FormularioEvaluacion'
 import { io } from 'socket.io-client'
+import { Icon } from '@iconify/react'
 
 function App() {
   // Función para obtener fechas por defecto
@@ -450,7 +451,17 @@ function App() {
             onClick={obtenerLlamadaAleatoria}
             disabled={loading}
           >
-            {loading ? '🔄 Buscando...' : '🎲 Obtener Llamada Aleatoria'}
+            {loading ? (
+              <>
+                <Icon icon="mdi:loading" className="animate-spin" style={{marginRight: '8px'}} />
+                Buscando...
+              </>
+            ) : (
+              <>
+                <Icon icon="mdi:dice-6" style={{marginRight: '8px'}} />
+                Obtener Llamada Aleatoria
+              </>
+            )}
           </button>
 
           {/* Contador y cronómetro debajo de los filtros */}
@@ -512,23 +523,29 @@ function App() {
 
           {llamada && (
             <div className="llamada-detalle">
-                <h2>📞 Detalle de la Llamada</h2>
+                <h2>
+                  <Icon icon="mdi:phone" style={{marginRight: '8px'}} />
+                  Detalle de la Llamada
+                </h2>
               
                 <div className="detalle-lineas">
                   <div className="detalle-seccion">
-                    <h3>📋 Información de la Llamada</h3>
+                    <h3>
+                      <Icon icon="mdi:information" style={{marginRight: '8px'}} />
+                      Información de la Llamada
+                    </h3>
                     <div className="detalle-linea">
-                      <span className="icono">🆔</span>
+                      <Icon icon="mdi:identifier" className="icono" />
                       <span className="label">ID:</span>
                       <span className="valor">{llamada.ID_Largo || 'N/A'}</span>
                     </div>
                     <div className="detalle-linea">
-                      <span className="icono">📱</span>
+                      <Icon icon="mdi:phone" className="icono" />
                       <span className="label">Número:</span>
                       <span className="valor">{llamada.Numero}</span>
                     </div>
                     <div className="detalle-linea">
-                      <span className="icono">📅</span>
+                      <Icon icon="mdi:calendar" className="icono" />
                       <span className="label">Fecha:</span>
                       <span className="valor">
                         {llamada.Fecha.includes('T') 
@@ -538,7 +555,7 @@ function App() {
                       </span>
                     </div>
                     <div className="detalle-linea">
-                      <span className="icono">🕐</span>
+                      <Icon icon="mdi:clock" className="icono" />
                       <span className="label">Hora:</span>
                       <span className="valor">
                         {llamada.Hora 
@@ -547,7 +564,7 @@ function App() {
                       </span>
                     </div>
                     <div className="detalle-linea">
-                      <span className="icono">⏱️</span>
+                      <Icon icon="mdi:timer" className="icono" />
                       <span className="label">Duración:</span>
                       <span className="valor">
                         {llamada.Duracion >= 60 
@@ -559,9 +576,12 @@ function App() {
                   </div>
 
                   <div className="detalle-seccion">
-                    <h3>👤 Agente</h3>
+                    <h3>
+                      <Icon icon="mdi:account" style={{marginRight: '8px'}} />
+                      Agente
+                    </h3>
                     <div className="detalle-linea">
-                      <span className="icono">👨‍💼</span>
+                      <Icon icon="mdi:account-tie" className="icono" />
                       <span className="label">Nombre:</span>
                       <span className="valor">{llamada.NombreCompletoAgente} <span className="dni-parentesis">({llamada.DNIEmpleado})</span></span>
                     </div>

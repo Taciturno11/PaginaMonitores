@@ -1,7 +1,7 @@
 .app-layout {
   display: flex;
   min-height: 100vh;
-  background-color: #f5f6fa;
+  background-color: #f8fafc;
 }
 
 .main-content {
@@ -19,18 +19,18 @@
 .modulo-placeholder {
   background: white;
   padding: 60px 20px;
-  border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   text-align: center;
   font-size: 1.5rem;
-  color: #999;
+  color: #64748b;
 }
 
 header {
-  padding: 20px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 24px;
+  background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
   color: white;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .header-content {
@@ -109,20 +109,22 @@ header p {
 
 .filtros-container {
   background: white;
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e2e8f0;
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 20px;
 }
 
 .filtros-container h2 {
   margin-top: 0;
-  color: #333;
-  border-bottom: 2px solid #667eea;
-  padding-bottom: 10px;
+  color: #1e293b;
+  border-bottom: 2px solid #6b7280;
+  padding-bottom: 12px;
   font-size: 1.3rem;
+  font-weight: 600;
 }
 
 .filtros-grid {
@@ -140,45 +142,49 @@ header p {
 
 .filtro-item label {
   font-weight: 600;
-  margin-bottom: 5px;
-  color: #555;
-  font-size: 0.85rem;
+  margin-bottom: 8px;
+  color: #374151;
+  font-size: 0.9rem;
   white-space: nowrap;
 }
 
 .filtro-item input,
 .filtro-item select {
   width: 100%;
-  padding: 8px;
-  border: 2px solid #e0e0e0;
-  border-radius: 6px;
-  font-size: 13px;
-  transition: border-color 0.3s;
+  padding: 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: all 0.2s;
   box-sizing: border-box;
+  background: white;
+  color: #374151;
 }
 
 .filtro-item input:focus,
 .filtro-item select:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: #6b7280;
+  box-shadow: 0 0 0 3px rgba(107, 114, 128, 0.1);
 }
 
 .btn-buscar {
   width: 100%;
-  padding: 12px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 14px;
+  background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
   color: white;
   border: none;
   border-radius: 8px;
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: all 0.2s;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .btn-buscar:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(55, 65, 81, 0.3);
 }
 
 .btn-buscar:disabled {
