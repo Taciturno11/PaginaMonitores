@@ -10,14 +10,34 @@ import FormularioEvaluacion from './FormularioEvaluacion'
 import { io } from 'socket.io-client'
 
 function App() {
+  // Función para obtener fechas por defecto
+  const obtenerFechasPorDefecto = () => {
+    const hoy = new Date();
+    const primerDiaMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+    
+    const formatearFecha = (fecha) => {
+      const year = fecha.getFullYear();
+      const month = String(fecha.getMonth() + 1).padStart(2, '0');
+      const day = String(fecha.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+    
+    return {
+      fechaInicio: formatearFecha(primerDiaMes),
+      fechaFin: formatearFecha(hoy)
+    };
+  };
+
+  const fechasDefecto = obtenerFechasPorDefecto();
+  
   const [usuario, setUsuario] = useState(null);
   const [moduloActivo, setModuloActivo] = useState('monitoreo'); // Para monitores por defecto 'monitoreo', para jefa 'dashboard'
   const [filtros, setFiltros] = useState({
-    fechaInicio: '',
-    fechaFin: '',
+    fechaInicio: fechasDefecto.fechaInicio,
+    fechaFin: fechasDefecto.fechaFin,
     campana: '',
     agente: '',
-    supervisor: '',
+    idLargo: '',
     cola: ''
   });
 
@@ -176,6 +196,13 @@ function App() {
       }
 
       const data = await response.json();
+      
+      // Verificar si hay error (no se encontraron resultados)
+      if (data.error) {
+        setError(data.error);
+        return;
+      }
+      
       setLlamada(data);
       // Iniciar contador de 5 segundos
       setContadorInicial(5);
@@ -378,13 +405,13 @@ function App() {
             </div>
 
             <div className="filtro-item">
-              <label>Supervisor:</label>
+              <label>ID_Largo:</label>
               <input 
                 type="text" 
-                name="supervisor"
-                value={filtros.supervisor}
+                name="idLargo"
+                value={filtros.idLargo}
                 onChange={handleInputChange}
-                placeholder="Buscar por nombre"
+                placeholder="Buscar por ID_Largo"
               />
             </div>
           </div>

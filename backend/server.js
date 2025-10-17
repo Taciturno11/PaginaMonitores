@@ -179,7 +179,7 @@ app.post('/api/llamada-aleatoria', async (req, res) => {
   try {
     const pool = await sql.connect(dbConfig);
     
-    const { fechaInicio, fechaFin, campana, agente, supervisor, cola } = req.body;
+    const { fechaInicio, fechaFin, campana, agente, idLargo, cola } = req.body;
     
     // Construir query con filtros opcionales
     let query = `
@@ -213,9 +213,9 @@ app.post('/api/llamada-aleatoria', async (req, res) => {
       params.push({ name: 'agente', type: sql.NVarChar, value: `%${agente}%` });
     }
     
-    if (supervisor) {
-      query += ` AND NombreCompletoSupervisor LIKE @supervisor`;
-      params.push({ name: 'supervisor', type: sql.NVarChar, value: `%${supervisor}%` });
+    if (idLargo) {
+      query += ` AND ID_Largo = @idLargo`;
+      params.push({ name: 'idLargo', type: sql.NVarChar, value: idLargo });
     }
     
     if (cola) {
@@ -223,7 +223,10 @@ app.post('/api/llamada-aleatoria', async (req, res) => {
       params.push({ name: 'cola', type: sql.NVarChar, value: cola });
     }
     
-    query += ` ORDER BY NEWID()`; // Orden aleatorio
+    // Solo usar orden aleatorio si NO se está filtrando por ID_Largo específico
+    if (!idLargo) {
+      query += ` ORDER BY NEWID()`; // Orden aleatorio
+    }
     
     const request = pool.request();
     params.forEach(param => {
@@ -233,7 +236,7 @@ app.post('/api/llamada-aleatoria', async (req, res) => {
     const result = await request.query(query);
     
     if (result.recordset.length === 0) {
-      return res.status(404).json({ message: 'No se encontraron llamadas con esos filtros' });
+      return res.status(200).json({ error: 'No se encontraron llamadas con esos filtros' });
     }
     
     res.json(result.recordset[0]);
