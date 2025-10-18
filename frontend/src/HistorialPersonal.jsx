@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import './HistorialPersonal.css'
+import { Icon } from '@iconify/react'
 
 function HistorialPersonal({ usuario }) {
   const [historial, setHistorial] = useState([]);
@@ -148,7 +149,7 @@ function HistorialPersonal({ usuario }) {
       {estadisticas && (
         <div className="stats-cards">
           <div className="stat-card">
-            <div className="stat-icon">📊</div>
+            <div className="stat-icon"><Icon icon="mdi:chart-line" /></div>
             <div className="stat-info">
               <span className="stat-label">Total Monitoreos</span>
               <span className="stat-value">{estadisticas.total}</span>
@@ -156,7 +157,7 @@ function HistorialPersonal({ usuario }) {
           </div>
 
           <div className="stat-card">
-            <div className="stat-icon">📅</div>
+            <div className="stat-icon"><Icon icon="mdi:calendar" /></div>
             <div className="stat-info">
               <span className="stat-label">Hoy</span>
               <span className="stat-value">{estadisticas.hoy}</span>
@@ -164,7 +165,7 @@ function HistorialPersonal({ usuario }) {
           </div>
 
           <div className="stat-card">
-            <div className="stat-icon">⏱️</div>
+            <div className="stat-icon"><Icon icon="mdi:timer" /></div>
             <div className="stat-info">
               <span className="stat-label">Tiempo Total</span>
               <span className="stat-value">{formatearTiempo(estadisticas.tiempoTotalSegundos)}</span>
@@ -172,7 +173,7 @@ function HistorialPersonal({ usuario }) {
           </div>
 
           <div className="stat-card">
-            <div className="stat-icon">⌛</div>
+            <div className="stat-icon"><Icon icon="mdi:hourglass-empty" /></div>
             <div className="stat-info">
               <span className="stat-label">Tiempo Promedio</span>
               <span className="stat-value">{formatearTiempo(estadisticas.tiempoPromedioSegundos)}</span>
@@ -184,7 +185,7 @@ function HistorialPersonal({ usuario }) {
       {/* Tabla de historial */}
       <div className="historial-table-container">
         <div className="historial-header">
-          <h2>📋 Mis Auditorías</h2>
+          <h2><Icon icon="mdi:clipboard-text" style={{marginRight: '8px'}} />Mis Auditorías</h2>
           <div className="filtros-inline">
             <input 
               type="date" 
@@ -221,7 +222,7 @@ function HistorialPersonal({ usuario }) {
                 <th>Agente</th>
                 <th>Campaña</th>
                 <th>Cola</th>
-                <th>⏱️ Tiempo Monitoreo</th>
+                <th><Icon icon="mdi:timer" style={{marginRight: '4px'}} />Tiempo Monitoreo</th>
               </tr>
             </thead>
             <tbody>

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import './Sidebar.css'
+import { Icon } from '@iconify/react'
 
 function Sidebar({ rol, moduloActivo, onCambiarModulo }) {
   const [colapsado, setColapsado] = useState(false);
@@ -10,15 +11,15 @@ function Sidebar({ rol, moduloActivo, onCambiarModulo }) {
 
   // Módulos para monitores
   const modulosMonitor = [
-    { id: 'monitoreo', nombre: 'Monitoreo', icono: '📞' },
-    { id: 'mi-historial', nombre: 'Mi Historial', icono: '📊' }
+    { id: 'monitoreo', nombre: 'Monitoreo', icono: 'mdi:phone' },
+    { id: 'mi-historial', nombre: 'Mi Historial', icono: 'mdi:chart-line' }
   ];
 
   // Módulos para jefa
   const modulosJefa = [
-    { id: 'dashboard', nombre: 'Dashboard', icono: '📊' },
-    { id: 'historial-general', nombre: 'Historial General', icono: '📈' },
-    { id: 'reporte', nombre: 'Reporte', icono: '🧾' }
+    { id: 'dashboard', nombre: 'Dashboard', icono: 'mdi:view-dashboard' },
+    { id: 'historial-general', nombre: 'Historial General', icono: 'mdi:chart-box' },
+    { id: 'reporte', nombre: 'Reporte', icono: 'mdi:file-document-multiple' }
   ];
 
   const modulos = rol === 'jefa' ? modulosJefa : modulosMonitor;
@@ -33,7 +34,7 @@ function Sidebar({ rol, moduloActivo, onCambiarModulo }) {
           </div>
         )}
         <button className="sidebar-toggle" onClick={toggleSidebar}>
-          {colapsado ? '▶' : '◀'}
+          <Icon icon={colapsado ? 'mdi:chevron-right' : 'mdi:chevron-left'} />
         </button>
       </div>
 
@@ -45,7 +46,7 @@ function Sidebar({ rol, moduloActivo, onCambiarModulo }) {
             onClick={() => onCambiarModulo(modulo.id)}
             title={modulo.nombre}
           >
-            <span className="sidebar-icono">{modulo.icono}</span>
+            <Icon icon={modulo.icono} className="sidebar-icono" />
             {!colapsado && <span className="sidebar-texto">{modulo.nombre}</span>}
           </button>
         ))}

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import './HistorialGeneral.css'
+import { Icon } from '@iconify/react'
 
 function HistorialGeneral() {
   // Obtener fechas por defecto
@@ -197,8 +198,8 @@ function HistorialGeneral() {
                 <div className="ranking-info">
                   <div className="ranking-nombre">{monitor.nombre}</div>
                   <div className="ranking-stats">
-                    <span>📞 {monitor.total} llamadas</span>
-                    <span>⏱️ {formatearTiempo(monitor.tiempoPromedio)} promedio</span>
+                    <span><Icon icon="mdi:phone" style={{marginRight: '4px'}} />{monitor.total} llamadas</span>
+                    <span><Icon icon="mdi:timer" style={{marginRight: '4px'}} />{formatearTiempo(monitor.tiempoPromedio)} promedio</span>
                   </div>
                 </div>
               </div>
@@ -209,7 +210,7 @@ function HistorialGeneral() {
 
       {/* Filtros */}
       <div className="historial-header">
-        <h2>📋 Historial de Auditorías</h2>
+        <h2><Icon icon="mdi:clipboard-text" style={{marginRight: '8px'}} />Historial de Auditorías</h2>
           <div className="filtros-inline">
             <input 
               type="date" 
@@ -258,7 +259,7 @@ function HistorialGeneral() {
                 <th>Agente</th>
                 <th>Campaña</th>
                 <th>Cola</th>
-                <th>⏱️ Tiempo</th>
+                <th><Icon icon="mdi:timer" style={{marginRight: '4px'}} />Tiempo</th>
               </tr>
             </thead>
             <tbody>

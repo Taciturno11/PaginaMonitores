@@ -489,7 +489,7 @@ function App() {
               {tiempoFinal !== null && (
                 <div className="tiempo-final">
                   <div className="tiempo-completado">
-                    ✅ Completado: <strong>{formatearTiempo(tiempoFinal)}</strong>
+                    <Icon icon="mdi:check-circle" style={{marginRight: '4px'}} />Completado: <strong>{formatearTiempo(tiempoFinal)}</strong>
                   </div>
                 </div>
               )}
@@ -516,7 +516,7 @@ function App() {
 
           {!llamada && !error && (
             <div className="empty-state">
-              <div className="empty-state-icon">🔍</div>
+              <div className="empty-state-icon"><Icon icon="mdi:magnify" /></div>
               <p>Selecciona filtros y haz clic en "Obtener Llamada Aleatoria" para empezar</p>
             </div>
           )}
@@ -586,46 +586,46 @@ function App() {
                       <span className="valor">{llamada.NombreCompletoAgente} <span className="dni-parentesis">({llamada.DNIEmpleado})</span></span>
                     </div>
                     <div className="detalle-linea">
-                      <span className="icono">💼</span>
+                      <Icon icon="mdi:briefcase" className="icono" />
                       <span className="label">Cargo:</span>
                       <span className="valor">{llamada.Cargo}</span>
                     </div>
                     <div className="detalle-linea">
-                      <span className="icono">✅</span>
+                      <Icon icon="mdi:check-circle" className="icono" />
                       <span className="label">Estado:</span>
                       <span className="valor badge-estado">{llamada.EstadoEmpleado}</span>
                     </div>
                     <div className="detalle-linea">
-                      <span className="icono">🏢</span>
+                      <Icon icon="mdi:office-building" className="icono" />
                       <span className="label">Modalidad:</span>
                       <span className="valor">{llamada.Modalidad}</span>
                     </div>
                     <div className="detalle-linea">
-                      <span className="icono">⏰</span>
+                      <Icon icon="mdi:clock" className="icono" />
                       <span className="label">Jornada:</span>
                       <span className="valor">{llamada.Jornada}</span>
                     </div>
                   </div>
 
                   <div className="detalle-seccion">
-                    <h3>🎯 Campaña y Gestión</h3>
+                    <h3><Icon icon="mdi:target" style={{marginRight: '8px'}} />Campaña y Gestión</h3>
                     <div className="detalle-linea">
-                      <span className="icono">🎯</span>
+                      <Icon icon="mdi:target" className="icono" />
                       <span className="label">Campaña:</span>
                       <span className="valor">{llamada.Campaña_Agente}</span>
                     </div>
                     <div className="detalle-linea">
-                      <span className="icono">📞</span>
+                      <Icon icon="mdi:phone" className="icono" />
                       <span className="label">Cola:</span>
                       <span className="valor">{llamada.Cola}</span>
                     </div>
                     <div className="detalle-linea">
-                      <span className="icono">👔</span>
+                      <Icon icon="mdi:tie" className="icono" />
                       <span className="label">Supervisor:</span>
                       <span className="valor">{llamada.NombreCompletoSupervisor}</span>
                     </div>
                     <div className="detalle-linea">
-                      <span className="icono">👤</span>
+                      <Icon icon="mdi:account" className="icono" />
                       <span className="label">Usuario Origen:</span>
                       <span className="valor">{llamada.Usuario_Llamada_Origen}</span>
                     </div>
@@ -634,17 +634,17 @@ function App() {
                   <div className="detalle-seccion">
                     <h3>📝 Tipificación</h3>
                     <div className="detalle-linea">
-                      <span className="icono">📋</span>
+                      <Icon icon="mdi:clipboard-text" className="icono" />
                       <span className="label">Detalle:</span>
                       <span className="valor">{llamada.Tipificacion_Detalle}</span>
                     </div>
                     <div className="detalle-linea">
-                      <span className="icono">📊</span>
+                      <Icon icon="mdi:chart-bar" className="icono" />
                       <span className="label">Estado IPC:</span>
                       <span className="valor">{llamada.Tipificacion_Estado_IPC}</span>
                     </div>
                     <div className="detalle-linea">
-                      <span className="icono">✓</span>
+                      <Icon icon="mdi:check" className="icono" />
                       <span className="label">Estado General:</span>
                       <span className="valor">{llamada.Tipificacion_Estado_General}</span>
                     </div>
@@ -683,10 +683,10 @@ function App() {
             <div className="header-right">
               <div className="user-info">
                 <span className="user-name">{usuario.nombre}</span>
-                <span className="user-rol">{usuario.rol === 'jefa' ? '👑 Jefa' : '👤 Monitor'}</span>
+                <span className="user-rol">{usuario.rol === 'jefa' ? <><Icon icon="mdi:crown" style={{marginRight: '4px'}} />Jefa</> : <><Icon icon="mdi:account" style={{marginRight: '4px'}} />Monitor</>}</span>
       </div>
               <button className="btn-logout" onClick={handleLogout}>
-                🚪 Cerrar Sesión
+                <Icon icon="mdi:logout" style={{marginRight: '4px'}} />Cerrar Sesión
         </button>
             </div>
           </div>

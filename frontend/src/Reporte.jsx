@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import './HistorialGeneral.css'
 import './Reporte.css'
+import { Icon } from '@iconify/react'
 
 function Reporte() {
   const API_URL = import.meta.env.VITE_API_URL
@@ -108,7 +109,7 @@ function Reporte() {
   return (
     <div className="historial-general-container">
       <div className="historial-header">
-        <h2>🧾 Reporte de Monitoreo</h2>
+        <h2><Icon icon="mdi:file-document-multiple" style={{marginRight: '8px'}} />Reporte de Monitoreo</h2>
         <div className="filtros-inline" style={{ gap: '8px', flexWrap: 'wrap' }}>
           <input
             type="text"
@@ -146,7 +147,7 @@ function Reporte() {
             <div className="kpi-orbit">
               {/* KPI Left (180°) */}
               <div className="kpi kpi-node kpi-left">
-                <div className="kpi-icon">🟢</div>
+                <div className="kpi-icon"><Icon icon="mdi:circle" style={{color: '#22c55e'}} /></div>
                 <div className="kpi-content">
                   <div className="kpi-label">En llamada</div>
                   <div className="kpi-value">{formatearTiempo(reporte.resumen.tiempoEnLlamadaSegundos)}</div>
@@ -154,7 +155,7 @@ function Reporte() {
               </div>
               {/* KPI Right (0°) */}
               <div className="kpi kpi-node kpi-right">
-                <div className="kpi-icon">🟡</div>
+                <div className="kpi-icon"><Icon icon="mdi:circle" style={{color: '#eab308'}} /></div>
                 <div className="kpi-content">
                   <div className="kpi-label">Conectado</div>
                   <div className="kpi-value">{formatearTiempo(reporte.resumen.tiempoConectadoSegundos)}</div>
@@ -162,7 +163,7 @@ function Reporte() {
               </div>
               {/* KPI Bottom-Left */}
               <div className="kpi kpi-node kpi-bottom-left">
-                <div className="kpi-icon">🔴</div>
+                <div className="kpi-icon"><Icon icon="mdi:circle" style={{color: '#ef4444'}} /></div>
                 <div className="kpi-content">
                   <div className="kpi-label">Desconectado</div>
                   <div className="kpi-value">{formatearTiempo(reporte.resumen.tiempoDesconectadoSegundos)}</div>
@@ -170,7 +171,7 @@ function Reporte() {
               </div>
               {/* KPI Bottom-Right */}
               <div className="kpi kpi-node kpi-bottom-right">
-                <div className="kpi-icon kpi-primary">📞</div>
+                <div className="kpi-icon kpi-primary"><Icon icon="mdi:phone" /></div>
                 <div className="kpi-content">
                   <div className="kpi-label">Llamadas</div>
                   <div className="kpi-value">{reporte.resumen.totalLlamadas}</div>
@@ -190,12 +191,12 @@ function Reporte() {
 
           {/* Gráficos */}
           <div className="graficos-container">
-            <h3>📊 Análisis Visual</h3>
+            <h3><Icon icon="mdi:chart-bar" style={{marginRight: '8px'}} />Análisis Visual</h3>
             
             <div className="graficos-grid">
               {/* Gráfico de Tiempos */}
               <div className="grafico-card">
-                <h4>⏱️ Distribución de Tiempo</h4>
+                <h4><Icon icon="mdi:timer" style={{marginRight: '4px'}} />Distribución de Tiempo</h4>
                 <div className="chart-bars">
                   <div className="bar-item">
                     <div className="bar-label">En Llamada</div>
@@ -243,10 +244,10 @@ function Reporte() {
 
               {/* Indicadores de Productividad */}
               <div className="grafico-card">
-                <h4>📈 Indicadores</h4>
+                <h4><Icon icon="mdi:chart-line" style={{marginRight: '4px'}} />Indicadores</h4>
                 <div className="indicadores-grid">
                   <div className="indicador-item">
-                    <div className="indicador-icon">📞</div>
+                    <div className="indicador-icon"><Icon icon="mdi:phone" /></div>
                     <div className="indicador-info">
                       <div className="indicador-label">Total Llamadas</div>
                       <div className="indicador-value">{reporte.resumen.totalLlamadas}</div>
@@ -254,7 +255,7 @@ function Reporte() {
                   </div>
                   
                   <div className="indicador-item">
-                    <div className="indicador-icon">⏱️</div>
+                    <div className="indicador-icon"><Icon icon="mdi:timer" /></div>
                     <div className="indicador-info">
                       <div className="indicador-label">Tiempo Promedio</div>
                       <div className="indicador-value">
@@ -267,7 +268,7 @@ function Reporte() {
                   </div>
                   
                   <div className="indicador-item">
-                    <div className="indicador-icon">🎯</div>
+                    <div className="indicador-icon"><Icon icon="mdi:target" /></div>
                     <div className="indicador-info">
                       <div className="indicador-label">Productividad</div>
                       <div className="indicador-value">
@@ -277,7 +278,7 @@ function Reporte() {
                   </div>
                   
                   <div className="indicador-item">
-                    <div className="indicador-icon">⚡</div>
+                    <div className="indicador-icon"><Icon icon="mdi:lightning-bolt" /></div>
                     <div className="indicador-info">
                       <div className="indicador-label">Total Monitoreo</div>
                       <div className="indicador-value">{formatearTiempo(reporte.resumen.tiempoMonitoreoSegundos)}</div>
@@ -302,7 +303,7 @@ function Reporte() {
                       <th>Agente</th>
                       <th>Campaña</th>
                       <th>Cola</th>
-                      <th>⏱️ Tiempo</th>
+                      <th><Icon icon="mdi:timer" style={{marginRight: '4px'}} />Tiempo</th>
                     </tr>
                   </thead>
                   <tbody>

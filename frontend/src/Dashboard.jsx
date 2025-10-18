@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import './Dashboard.css'
+import { Icon } from '@iconify/react'
 
 function Dashboard({ socket }) {
   const [monitores, setMonitores] = useState([]);
@@ -49,13 +50,13 @@ function Dashboard({ socket }) {
   const getEstadoBadge = (estado) => {
     switch(estado) {
       case 'en_llamada':
-        return <span className="badge badge-en-llamada">🟢 Llamada</span>;
+        return <span className="badge badge-en-llamada"><Icon icon="mdi:circle" style={{color: '#22c55e'}} /> Llamada</span>;
       case 'conectado':
-        return <span className="badge badge-conectado">🟡 Conect.</span>;
+        return <span className="badge badge-conectado"><Icon icon="mdi:circle" style={{color: '#eab308'}} /> Conect.</span>;
       case 'desconectado':
-        return <span className="badge badge-desconectado">🔴 Descon.</span>;
+        return <span className="badge badge-desconectado"><Icon icon="mdi:circle" style={{color: '#ef4444'}} /> Descon.</span>;
       default:
-        return <span className="badge badge-desconocido">⚪ Desconocido</span>;
+        return <span className="badge badge-desconocido"><Icon icon="mdi:circle" style={{color: '#6b7280'}} /> Desconocido</span>;
     }
   };
 
@@ -65,7 +66,7 @@ function Dashboard({ socket }) {
   return (
     <div className="dashboard-container">
       <div className="dashboard-header">
-        <h2>📊 Dashboard de Monitores</h2>
+        <h2><Icon icon="mdi:view-dashboard" style={{marginRight: '8px'}} />Dashboard de Monitores</h2>
         <div className="dashboard-stats">
           <div className="stat-item">
             <span className="stat-label">Total Monitores:</span>
@@ -99,9 +100,9 @@ function Dashboard({ socket }) {
               <th>Monitor</th>
               <th>DNI</th>
               <th>Estado</th>
-              <th>📅 Fecha</th>
-              <th>🕒 Hora</th>
-              <th>⏱️ Tiempo</th>
+              <th><Icon icon="mdi:calendar" style={{marginRight: '4px'}} />Fecha</th>
+              <th><Icon icon="mdi:clock" style={{marginRight: '4px'}} />Hora</th>
+              <th><Icon icon="mdi:timer" style={{marginRight: '4px'}} />Tiempo</th>
               <th>Llamada Actual</th>
             </tr>
           </thead>
@@ -134,7 +135,7 @@ function Dashboard({ socket }) {
       </div>
 
       <div className="dashboard-footer">
-        <p>🔄 Actualización en tiempo real cada segundo</p>
+        <p><Icon icon="mdi:refresh" style={{marginRight: '4px'}} />Actualización en tiempo real cada segundo</p>
       </div>
     </div>
   )

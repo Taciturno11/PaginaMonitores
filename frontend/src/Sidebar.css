@@ -1,13 +1,14 @@
 .sidebar {
-  background: linear-gradient(180deg, #374151 0%, #1f2937 100%);
+  background: var(--primary-2);
   height: 100vh;
   position: sticky;
   top: 0;
   transition: width 0.3s ease;
   display: flex;
   flex-direction: column;
-  color: white;
+  color: var(--primary-1);
   box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+  border-right: 1px solid #e5e7eb;
 }
 
 .sidebar:not(.sidebar-colapsado) {
@@ -23,7 +24,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .sidebar-logo {
@@ -35,21 +36,21 @@
 .sidebar-logo img {
   width: 40px;
   height: 40px;
-  background: white;
-  padding: 5px;
+  background: transparent;
+  padding: 0;
   border-radius: 8px;
 }
 
 .sidebar-logo span {
   font-size: 1.3rem;
-  font-weight: bold;
-  color: white;
+  font-weight: 700;
+  color: var(--primary-1);
 }
 
 .sidebar-toggle {
-  background: rgba(255, 255, 255, 0.2);
-  border: none;
-  color: white;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  color: var(--primary-1);
   font-size: 1.2rem;
   width: 30px;
   height: 30px;
@@ -62,7 +63,7 @@
 }
 
 .sidebar-toggle:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: #e5e7eb;
 }
 
 .sidebar-nav {
@@ -75,8 +76,8 @@
 .sidebar-item {
   background: transparent;
   border: none;
-  color: white;
-  padding: 12px 15px;
+  color: var(--primary-1);
+  padding: 14px 16px;
   border-radius: 8px;
   display: flex;
   align-items: center;
@@ -84,19 +85,20 @@
   cursor: pointer;
   transition: all 0.3s;
   font-size: 1rem;
+  font-weight: 500;
   text-align: left;
   width: 100%;
   white-space: nowrap;
 }
 
 .sidebar-item:hover {
-  background: rgba(255, 255, 255, 0.15);
+  background: #f3f4f6;
 }
 
 .sidebar-item.activo {
-  background: rgba(255, 255, 255, 0.25);
-  font-weight: 600;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  background: #e5e7eb;
+  font-weight: 700;
+  color: var(--primary-3);
 }
 
 .sidebar-icono {
