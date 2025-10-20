@@ -632,7 +632,7 @@ function App() {
                   </div>
 
                   <div className="detalle-seccion">
-                    <h3>📝 Tipificación</h3>
+                    <h3><Icon icon="mdi:file-document-edit" style={{marginRight: '8px'}} />Tipificación</h3>
                     <div className="detalle-linea">
                       <Icon icon="mdi:clipboard-text" className="icono" />
                       <span className="label">Detalle:</span>

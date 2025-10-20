@@ -34,7 +34,7 @@ function Sidebar({ rol, moduloActivo, onCambiarModulo }) {
           </div>
         )}
         <button className="sidebar-toggle" onClick={toggleSidebar}>
-          <Icon icon={colapsado ? 'mdi:chevron-right' : 'mdi:chevron-left'} />
+          <Icon icon="mdi:menu" style={{ color: 'var(--primary-1)', fontSize: '24px' }} />
         </button>
       </div>
 

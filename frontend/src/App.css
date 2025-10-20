@@ -1,3 +1,10 @@
+/* Estilos globales para iconos */
+svg {
+  display: inline-block;
+  vertical-align: middle;
+  fill: currentColor;
+}
+
 .app-layout {
   display: flex;
   min-height: 100vh;
@@ -112,7 +119,7 @@ header p {
   background: var(--primary-5);
   padding: 24px;
   border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
   border: 1px solid #e5e7eb;
   display: flex;
   flex-direction: column;
@@ -217,7 +224,7 @@ header p {
   background: white;
   padding: 60px 20px;
   border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
   text-align: center;
   color: #999;
   font-size: 1.1rem;
@@ -260,7 +267,7 @@ header p {
 }
 
 .cronometro-activo {
-  background: linear-gradient(135deg, #d47425 0%, hsl(32, 76%, 50%) 100%);
+  background: var(--primary-3);
   padding: 20px;
   border-radius: 10px;
   box-shadow: 0 4px 12px rgba(255, 71, 87, 0.3);
@@ -296,6 +303,7 @@ header p {
 .btn-finalizar:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  color:white;
 }
 
 .tiempo-final {
@@ -321,7 +329,7 @@ header p {
   background: white;
   padding: 25px;
   border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
 }
 
 .llamada-detalle h2 {
@@ -351,6 +359,7 @@ header p {
   color: #6b7280;
   font-size: 1.1rem;
   font-weight: 600;
+  color: #3073F0;
 }
 
 .detalle-linea {
@@ -369,6 +378,83 @@ header p {
   font-size: 1.3rem;
   min-width: 30px;
   text-align: center;
+}
+
+/* Colores específicos para iconos del detalle de llamada */
+.detalle-linea .icono {
+  color: #6366f1; /* Color por defecto */
+}
+
+/* Información de la llamada - Iconos por posición */
+.detalle-seccion:nth-of-type(1) .detalle-linea:nth-child(2) .icono {
+  color: #6366f1; /* ID */
+}
+
+.detalle-seccion:nth-of-type(1) .detalle-linea:nth-child(3) .icono {
+  color: #10b981; /* Teléfono */
+}
+
+.detalle-seccion:nth-of-type(1) .detalle-linea:nth-child(4) .icono {
+  color: #f59e0b; /* Fecha */
+}
+
+.detalle-seccion:nth-of-type(1) .detalle-linea:nth-child(5) .icono {
+  color: #8b5cf6; /* Hora */
+}
+
+.detalle-seccion:nth-of-type(1) .detalle-linea:nth-child(6) .icono {
+  color: #ec4899; /* Duración */
+}
+
+/* Agente - Iconos por posición */
+.detalle-seccion:nth-of-type(2) .detalle-linea:nth-child(2) .icono {
+  color: #3b82f6; /* Nombre */
+}
+
+.detalle-seccion:nth-of-type(2) .detalle-linea:nth-child(3) .icono {
+  color: #10b981; /* Cargo */
+}
+
+.detalle-seccion:nth-of-type(2) .detalle-linea:nth-child(4) .icono {
+  color: #10b981; /* Estado */
+}
+
+.detalle-seccion:nth-of-type(2) .detalle-linea:nth-child(5) .icono {
+  color: #f59e0b; /* Modalidad */
+}
+
+.detalle-seccion:nth-of-type(2) .detalle-linea:nth-child(6) .icono {
+  color: #8b5cf6; /* Jornada */
+}
+
+/* Campaña y Gestión - Iconos por posición */
+.detalle-seccion:nth-of-type(3) .detalle-linea:nth-child(2) .icono {
+  color: #ef4444; /* Campaña */
+}
+
+.detalle-seccion:nth-of-type(3) .detalle-linea:nth-child(3) .icono {
+  color: #10b981; /* Cola */
+}
+
+.detalle-seccion:nth-of-type(3) .detalle-linea:nth-child(4) .icono {
+  color: #8b5cf6; /* Supervisor */
+}
+
+.detalle-seccion:nth-of-type(3) .detalle-linea:nth-child(5) .icono {
+  color: #06b6d4; /* Usuario Origen */
+}
+
+/* Tipificación - Iconos por posición */
+.detalle-seccion:nth-of-type(4) .detalle-linea:nth-child(2) .icono {
+  color: #3b82f6; /* Detalle */
+}
+
+.detalle-seccion:nth-of-type(4) .detalle-linea:nth-child(3) .icono {
+  color: #10b981; /* Estado IPC */
+}
+
+.detalle-seccion:nth-of-type(4) .detalle-linea:nth-child(4) .icono {
+  color: #10b981; /* Estado General */
 }
 
 .detalle-linea .label {

@@ -52,18 +52,36 @@
   border: 1px solid #e5e7eb;
   color: var(--primary-1);
   font-size: 1.2rem;
-  width: 30px;
-  height: 30px;
+  width: 40px;
+  height: 40px;
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.3s;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 0;
+  flex-shrink: 0;
+  margin-left: -4px;
+}
+
+.sidebar-toggle svg,
+.sidebar-toggle .iconify {
+  color: var(--primary-1) !important;
+  width: 24px !important;
+  height: 24px !important;
+  min-width: 24px !important;
+  min-height: 24px !important;
+  display: block !important;
+  fill: currentColor !important;
 }
 
 .sidebar-toggle:hover {
   background: #e5e7eb;
+}
+
+.sidebar-toggle:hover svg {
+  color: var(--primary-3);
 }
 
 .sidebar-nav {
@@ -106,6 +124,17 @@
   min-width: 30px;
   display: flex;
   justify-content: center;
+  color: var(--primary-1);
+}
+
+.sidebar-icono svg {
+  width: 1.5rem;
+  height: 1.5rem;
+  color: var(--primary-1);
+}
+
+.sidebar-item.activo .sidebar-icono svg {
+  color: var(--primary-3);
 }
 
 .sidebar-texto {
