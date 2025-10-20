@@ -704,6 +704,27 @@ const campañasAsignadas = {
   '007332055': ['Portabilidad Prepago']      // Emmanuel Alejandro Lavin G.
 };
 
+// Endpoint para obtener lista de monitores
+app.get('/api/monitores', async (req, res) => {
+  try {
+    const pool = await sql.connect(dbConfig);
+    
+    const result = await pool.request().query(`
+      SELECT DISTINCT
+        DNI,
+        Nombres + ' ' + ApellidoPaterno + ' ' + ApellidoMaterno AS NombreCompleto
+      FROM [Partner].[PRI].[Empleados]
+      WHERE CargoID = 6 AND EstadoEmpleado = 'Activo'
+      ORDER BY NombreCompleto
+    `);
+
+    res.json(result.recordset);
+  } catch (error) {
+    console.error('Error al obtener monitores:', error);
+    res.status(500).json({ error: 'Error al obtener monitores', detalle: error.message });
+  }
+});
+
 // Endpoint de login para monitores y jefa
 app.post('/api/login', async (req, res) => {
   try {

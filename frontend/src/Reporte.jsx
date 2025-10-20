@@ -6,14 +6,23 @@ import { Icon } from '@iconify/react'
 function Reporte() {
   const API_URL = import.meta.env.VITE_API_URL
   
+  // Obtener fecha actual en formato YYYY-MM-DD
+  const getTodayDate = () => {
+    const today = new Date()
+    return today.toISOString().split('T')[0]
+  }
+  
   const [dni, setDni] = useState('')
   const [tipo, setTipo] = useState('dia') // 'dia' | 'rango'
-  const [fecha, setFecha] = useState('')
+  const [fecha, setFecha] = useState(getTodayDate())
   const [inicio, setInicio] = useState('')
   const [fin, setFin] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [reporte, setReporte] = useState(null)
+  const [monitores, setMonitores] = useState([])
+  const [monitoresFiltrados, setMonitoresFiltrados] = useState([])
+  const [mostrarSugerencias, setMostrarSugerencias] = useState(false)
 
   // Cargar último reporte desde sessionStorage al montar el componente
   useEffect(() => {
@@ -34,6 +43,22 @@ function Reporte() {
     }
   }, [])
 
+  // Cargar lista de monitores
+  useEffect(() => {
+    const cargarMonitores = async () => {
+      try {
+        const res = await fetch(`${API_URL}/api/monitores`)
+        const data = await res.json()
+        if (res.ok) {
+          setMonitores(data)
+        }
+      } catch (error) {
+        console.error('Error al cargar monitores:', error)
+      }
+    }
+    cargarMonitores()
+  }, [API_URL])
+
   // Guardar cambios en los filtros
   useEffect(() => {
     if (dni || tipo || fecha || inicio || fin) {
@@ -48,6 +73,30 @@ function Reporte() {
       sessionStorage.setItem('reporteActual', JSON.stringify(datosActuales))
     }
   }, [dni, tipo, fecha, inicio, fin, reporte])
+
+  // Función para filtrar monitores mientras se escribe
+  const handleDniChange = (e) => {
+    const valor = e.target.value
+    setDni(valor)
+    
+    if (valor.length > 0) {
+      const filtrados = monitores.filter(m => 
+        m.DNI.toLowerCase().includes(valor.toLowerCase()) ||
+        m.NombreCompleto.toLowerCase().includes(valor.toLowerCase())
+      )
+      setMonitoresFiltrados(filtrados)
+      setMostrarSugerencias(true)
+    } else {
+      setMonitoresFiltrados([])
+      setMostrarSugerencias(false)
+    }
+  }
+
+  // Función para seleccionar un monitor
+  const seleccionarMonitor = (monitor) => {
+    setDni(monitor.DNI)
+    setMostrarSugerencias(false)
+  }
 
   const formatearTiempo = (segundos) => {
     const horas = Math.floor(segundos / 3600)
@@ -111,14 +160,52 @@ function Reporte() {
       <div className="historial-header">
         <h2><Icon icon="mdi:file-document-multiple" style={{marginRight: '8px'}} />Reporte de Monitoreo</h2>
         <div className="filtros-inline" style={{ gap: '8px', flexWrap: 'wrap' }}>
-          <input
-            type="text"
-            placeholder="DNI monitor"
-            value={dni}
-            onChange={(e) => setDni(e.target.value)}
-            className="filtro-busqueda-inline"
-            style={{ width: 160 }}
-          />
+          <div style={{ position: 'relative', width: 280 }}>
+            <input
+              type="text"
+              placeholder="DNI o nombre del monitor"
+              value={dni}
+              onChange={handleDniChange}
+              onFocus={() => dni.length > 0 && setMostrarSugerencias(true)}
+              onBlur={() => setTimeout(() => setMostrarSugerencias(false), 200)}
+              className="filtro-busqueda-inline"
+              style={{ width: '100%' }}
+            />
+            {mostrarSugerencias && monitoresFiltrados.length > 0 && (
+              <div style={{
+                position: 'absolute',
+                top: '100%',
+                left: 0,
+                right: 0,
+                backgroundColor: 'white',
+                border: '1px solid #e5e7eb',
+                borderRadius: '8px',
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+                maxHeight: '200px',
+                overflowY: 'auto',
+                zIndex: 1000,
+                marginTop: '4px'
+              }}>
+                {monitoresFiltrados.map(monitor => (
+                  <div
+                    key={monitor.DNI}
+                    onClick={() => seleccionarMonitor(monitor)}
+                    style={{
+                      padding: '12px 16px',
+                      cursor: 'pointer',
+                      borderBottom: '1px solid #f3f4f6',
+                      transition: 'background-color 0.2s'
+                    }}
+                    onMouseEnter={(e) => e.target.style.backgroundColor = '#f3f4f6'}
+                    onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}
+                  >
+                    <div style={{ fontWeight: 600, color: '#1f2937' }}>{monitor.NombreCompleto}</div>
+                    <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>DNI: {monitor.DNI}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
           <select value={tipo} onChange={(e) => setTipo(e.target.value)} className="filtro-fecha">
             <option value="dia">Por día</option>
             <option value="rango">Por rango</option>
