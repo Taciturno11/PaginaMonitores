@@ -260,6 +260,55 @@
   padding-left: 0;
 }
 
+/* Sistema de Pestañas */
+.pestañas-menu {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 25px;
+  border-bottom: 2px solid #e5e7eb;
+  padding-bottom: 0;
+}
+
+.pestaña-btn {
+  display: flex;
+  align-items: center;
+  padding: 12px 20px;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: var(--primary-1);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-radius: 8px 8px 0 0;
+}
+
+.pestaña-btn:hover {
+  background: #f8f9ff;
+  color: var(--primary-3);
+}
+
+.pestaña-btn.activa {
+  background: var(--primary-3);
+  color: var(--primary-2);
+  border-bottom-color: var(--primary-3);
+  font-weight: 600;
+}
+
+.pestaña-btn.activa:hover {
+  background: var(--primary-3);
+  color: var(--primary-2);
+}
+
+.pestaña-contenido {
+  background: var(--primary-5);
+  border-radius: 8px;
+  padding: 20px;
+  border: 1px solid #e5e7eb;
+  min-height: 200px;
+}
+
 /* Cuadrícula de Evaluación */
 .evaluacion-seccion {
   margin-bottom: 30px;
@@ -456,5 +505,21 @@
   .btn-finalizar {
     width: 100%;
     justify-content: center;
+  }
+  
+  .pestañas-menu {
+    flex-direction: column;
+    gap: 5px;
+  }
+  
+  .pestaña-btn {
+    justify-content: center;
+    border-radius: 8px;
+    border-bottom: none;
+    margin-bottom: 5px;
+  }
+  
+  .pestaña-btn.activa {
+    border-bottom: none;
   }
 }

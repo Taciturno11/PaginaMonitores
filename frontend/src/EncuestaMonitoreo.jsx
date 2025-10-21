@@ -4,6 +4,9 @@ import './EncuestaMonitoreo.css'
 
 function EncuestaMonitoreo({ llamada, onCerrar }) {
   const [pasoActual, setPasoActual] = useState(1)
+  const [pestañaActivaPaso3, setPestañaActivaPaso3] = useState('saluda')
+  const [pestañaActivaPaso4, setPestañaActivaPaso4] = useState('informacion')
+  const [pestañaActivaPaso5, setPestañaActivaPaso5] = useState('gestion')
   const [formData, setFormData] = useState({
     // Paso 1: Datos Generales
     proveedor: '',
@@ -378,9 +381,9 @@ function EncuestaMonitoreo({ llamada, onCerrar }) {
     </div>
   )
 
-  const renderCuadriculaEvaluacion = (seccion, items, titulo) => (
+  const renderCuadriculaEvaluacion = (seccion, items, titulo, mostrarTitulo = true) => (
     <div className="evaluacion-seccion">
-      <h4>{titulo}</h4>
+      {mostrarTitulo && <h4>{titulo}</h4>}
       <div className="cuadricula-evaluacion">
         <div className="cuadricula-header">
           <div className="col-item">Item</div>
@@ -425,23 +428,57 @@ function EncuestaMonitoreo({ llamada, onCerrar }) {
     <div className="paso-contenido">
       <h3><Icon icon="mdi:account-tie" style={{marginRight: '8px'}} />PENC - ASESOR: PROTOCOLOS // BUENAS PRACTICAS</h3>
       
-      {renderCuadriculaEvaluacion('pencSaluda', [
-        { key: 'saludaDespide', label: 'Saluda / Se despide' },
-        { key: 'scriptEstablecido', label: 'Script establecido' }
-      ], 'Saluda / Se despide')}
+      {/* Menú de pestañas */}
+      <div className="pestañas-menu">
+        <button 
+          className={`pestaña-btn ${pestañaActivaPaso3 === 'saluda' ? 'activa' : ''}`}
+          onClick={() => setPestañaActivaPaso3('saluda')}
+        >
+          <Icon icon="mdi:hand-wave" style={{marginRight: '8px'}} />
+          Saluda / Se despide
+        </button>
+        <button 
+          className={`pestaña-btn ${pestañaActivaPaso3 === 'escucha' ? 'activa' : ''}`}
+          onClick={() => setPestañaActivaPaso3('escucha')}
+        >
+          <Icon icon="mdi:ear-hearing" style={{marginRight: '8px'}} />
+          Escucha activa
+        </button>
+        <button 
+          className={`pestaña-btn ${pestañaActivaPaso3 === 'formulas' ? 'activa' : ''}`}
+          onClick={() => setPestañaActivaPaso3('formulas')}
+        >
+          <Icon icon="mdi:handshake" style={{marginRight: '8px'}} />
+          Fórmulas de Cortesía
+        </button>
+      </div>
 
-      {renderCuadriculaEvaluacion('pencEscucha', [
-        { key: 'desconcentracion', label: 'Desconcentración' },
-        { key: 'evitaEspaciosBlanco', label: 'Evita espacios en Blanco' },
-        { key: 'interrupciones', label: 'Interrupciones' }
-      ], 'Escucha activa')}
+      {/* Contenido de las pestañas */}
+      <div className="pestaña-contenido">
+        {pestañaActivaPaso3 === 'saluda' && (
+          renderCuadriculaEvaluacion('pencSaluda', [
+            { key: 'saludaDespide', label: 'Saluda / Se despide' },
+            { key: 'scriptEstablecido', label: 'Script establecido' }
+          ], 'Saluda / Se despide', false)
+        )}
 
-      {renderCuadriculaEvaluacion('pencFormulas', [
-        { key: 'personalizaLlamada', label: 'Personaliza la llamada' },
-        { key: 'seguridadLlamada', label: 'Seguridad en la llamada' },
-        { key: 'amabilidadEmpatia', label: 'Amabilidad y empatía' },
-        { key: 'buenTonoVoz', label: 'Buen tono de voz/vocabulario/tecnicismos' }
-      ], 'Fórmulas de Cortesía')}
+        {pestañaActivaPaso3 === 'escucha' && (
+          renderCuadriculaEvaluacion('pencEscucha', [
+            { key: 'desconcentracion', label: 'Desconcentración' },
+            { key: 'evitaEspaciosBlanco', label: 'Evita espacios en Blanco' },
+            { key: 'interrupciones', label: 'Interrupciones' }
+          ], 'Escucha activa', false)
+        )}
+
+        {pestañaActivaPaso3 === 'formulas' && (
+          renderCuadriculaEvaluacion('pencFormulas', [
+            { key: 'personalizaLlamada', label: 'Personaliza la llamada' },
+            { key: 'seguridadLlamada', label: 'Seguridad en la llamada' },
+            { key: 'amabilidadEmpatia', label: 'Amabilidad y empatía' },
+            { key: 'buenTonoVoz', label: 'Buen tono de voz/vocabulario/tecnicismos' }
+          ], 'Fórmulas de Cortesía', false)
+        )}
+      </div>
     </div>
   )
 
@@ -449,28 +486,71 @@ function EncuestaMonitoreo({ llamada, onCerrar }) {
     <div className="paso-contenido">
       <h3><Icon icon="mdi:account-check" style={{marginRight: '8px'}} />PEC-UF: PRECISIÓN ERRORES CRÍTICOS DEL USUARIO FINAL</h3>
       
-      {renderCuadriculaEvaluacion('pecInformacion', [
-        { key: 'informacionCorrecta', label: 'Información correcta/completa del producto ofrecido' }
-      ], 'Información correcta/completa del producto ofrecido')}
+      {/* Menú de pestañas */}
+      <div className="pestañas-menu">
+        <button 
+          className={`pestaña-btn ${pestañaActivaPaso4 === 'informacion' ? 'activa' : ''}`}
+          onClick={() => setPestañaActivaPaso4('informacion')}
+        >
+          <Icon icon="mdi:information" style={{marginRight: '8px'}} />
+          Información del Producto
+        </button>
+        <button 
+          className={`pestaña-btn ${pestañaActivaPaso4 === 'proceso' ? 'activa' : ''}`}
+          onClick={() => setPestañaActivaPaso4('proceso')}
+        >
+          <Icon icon="mdi:cog" style={{marginRight: '8px'}} />
+          Proceso
+        </button>
+        <button 
+          className={`pestaña-btn ${pestañaActivaPaso4 === 'actitud' ? 'activa' : ''}`}
+          onClick={() => setPestañaActivaPaso4('actitud')}
+        >
+          <Icon icon="mdi:account-heart" style={{marginRight: '8px'}} />
+          Actitud del Servicio
+        </button>
+        <button 
+          className={`pestaña-btn ${pestañaActivaPaso4 === 'calidad' ? 'activa' : ''}`}
+          onClick={() => setPestañaActivaPaso4('calidad')}
+        >
+          <Icon icon="mdi:star" style={{marginRight: '8px'}} />
+          Calidad de Atención
+        </button>
+      </div>
 
-      {renderCuadriculaEvaluacion('pecProceso', [
-        { key: 'procesoCoordinacion', label: 'Correcto proceso de coordinación' },
-        { key: 'verificacionDocumentos', label: 'Verificación de documentos' },
-        { key: 'reglasOrtografia', label: 'Cumple con reglas ortografías y sintaxis en la redacción' },
-        { key: 'procesoBiometrico', label: 'Cumple con el proceso biométrico' },
-        { key: 'revisionScripter', label: 'Asesor realizó la revisión del scripter sugerido del cic' }
-      ], 'PROCESO')}
+      {/* Contenido de las pestañas */}
+      <div className="pestaña-contenido">
+        {pestañaActivaPaso4 === 'informacion' && (
+          renderCuadriculaEvaluacion('pecInformacion', [
+            { key: 'informacionCorrecta', label: 'Información correcta/completa del producto ofrecido' }
+          ], 'Información correcta/completa del producto ofrecido', false)
+        )}
 
-      {renderCuadriculaEvaluacion('pecActitud', [
-        { key: 'mantieneAtencion', label: 'Mantiene la atención del cliente en la llamada' },
-        { key: 'llamadaIncompleta', label: 'Llamada incompleta/corte de llamada' },
-        { key: 'canalAbierto', label: 'Canal abierto' }
-      ], 'Actitud del servicio')}
+        {pestañaActivaPaso4 === 'proceso' && (
+          renderCuadriculaEvaluacion('pecProceso', [
+            { key: 'procesoCoordinacion', label: 'Correcto proceso de coordinación' },
+            { key: 'verificacionDocumentos', label: 'Verificación de documentos' },
+            { key: 'reglasOrtografia', label: 'Cumple con reglas ortografías y sintaxis en la redacción' },
+            { key: 'procesoBiometrico', label: 'Cumple con el proceso biométrico' },
+            { key: 'revisionScripter', label: 'Asesor realizó la revisión del scripter sugerido del cic' }
+          ], 'PROCESO', false)
+        )}
 
-      {renderCuadriculaEvaluacion('pecCalidad', [
-        { key: 'solicitaEspera', label: 'Solicita y agradece la Espera' },
-        { key: 'tiempoEspera', label: 'Tiempo de Espera y uso del hold (1:15)' }
-      ], 'Calidad de atención')}
+        {pestañaActivaPaso4 === 'actitud' && (
+          renderCuadriculaEvaluacion('pecActitud', [
+            { key: 'mantieneAtencion', label: 'Mantiene la atención del cliente en la llamada' },
+            { key: 'llamadaIncompleta', label: 'Llamada incompleta/corte de llamada' },
+            { key: 'canalAbierto', label: 'Canal abierto' }
+          ], 'Actitud del servicio', false)
+        )}
+
+        {pestañaActivaPaso4 === 'calidad' && (
+          renderCuadriculaEvaluacion('pecCalidad', [
+            { key: 'solicitaEspera', label: 'Solicita y agradece la Espera' },
+            { key: 'tiempoEspera', label: 'Tiempo de Espera y uso del hold (1:15)' }
+          ], 'Calidad de atención', false)
+        )}
+      </div>
     </div>
   )
 
@@ -478,25 +558,50 @@ function EncuestaMonitoreo({ llamada, onCerrar }) {
     <div className="paso-contenido">
       <h3><Icon icon="mdi:briefcase" style={{marginRight: '8px'}} />PEC-NEG: PRECISIÓN ERRORES CRÍTICOS DEL NEGOCIO</h3>
       
-      {renderCuadriculaEvaluacion('pecGestionalComercial', [
-        { key: 'seguimientoGestion', label: 'Seguimiento de Gestión' },
-        { key: 'validacionDatos', label: 'Validación de datos' },
-        { key: 'validaCobertura', label: 'Valida correctamente cobertura' },
-        { key: 'sondeaNecesidades', label: 'Sondea correctamente necesidades' },
-        { key: 'ofrecimientoAcorde', label: 'Ofrecimiento acorde a la necesidad' },
-        { key: 'ofrecimientoEscalonado', label: 'Realiza un ofrecimiento comercial de manera escalonada' },
-        { key: 'rebateObjeciones', label: 'Rebate objeciones' },
-        { key: 'despejaDudas', label: 'Despeja dudas del producto ofertado' },
-        { key: 'ofrecimientoPromocion', label: 'Ofrecimiento de promoción vigente/proactivo' },
-        { key: 'incentivaBaja', label: 'Incentiva a la baja' },
-        { key: 'procedimientoURL', label: 'Procedimiento URL (registro de datos)' }
-      ], 'Gestión Comercial')}
+      {/* Menú de pestañas */}
+      <div className="pestañas-menu">
+        <button 
+          className={`pestaña-btn ${pestañaActivaPaso5 === 'gestion' ? 'activa' : ''}`}
+          onClick={() => setPestañaActivaPaso5('gestion')}
+        >
+          <Icon icon="mdi:chart-line" style={{marginRight: '8px'}} />
+          Gestión Comercial
+        </button>
+        <button 
+          className={`pestaña-btn ${pestañaActivaPaso5 === 'validaciones' ? 'activa' : ''}`}
+          onClick={() => setPestañaActivaPaso5('validaciones')}
+        >
+          <Icon icon="mdi:database-check" style={{marginRight: '8px'}} />
+          Validaciones CRM
+        </button>
+      </div>
 
-      {renderCuadriculaEvaluacion('pecValidacionesCRM', [
-        { key: 'registroCRMOne', label: 'Registro correcto de crm one' },
-        { key: 'registroCRMVentas', label: 'Registro correcto en el crm ventas' },
-        { key: 'registroCodigoConclusion', label: 'Registro correcto en el código de conclusión' }
-      ], 'Validaciones y Registros en CRM')}
+      {/* Contenido de las pestañas */}
+      <div className="pestaña-contenido">
+        {pestañaActivaPaso5 === 'gestion' && (
+          renderCuadriculaEvaluacion('pecGestionalComercial', [
+            { key: 'seguimientoGestion', label: 'Seguimiento de Gestión' },
+            { key: 'validacionDatos', label: 'Validación de datos' },
+            { key: 'validaCobertura', label: 'Valida correctamente cobertura' },
+            { key: 'sondeaNecesidades', label: 'Sondea correctamente necesidades' },
+            { key: 'ofrecimientoAcorde', label: 'Ofrecimiento acorde a la necesidad' },
+            { key: 'ofrecimientoEscalonado', label: 'Realiza un ofrecimiento comercial de manera escalonada' },
+            { key: 'rebateObjeciones', label: 'Rebate objeciones' },
+            { key: 'despejaDudas', label: 'Despeja dudas del producto ofertado' },
+            { key: 'ofrecimientoPromocion', label: 'Ofrecimiento de promoción vigente/proactivo' },
+            { key: 'incentivaBaja', label: 'Incentiva a la baja' },
+            { key: 'procedimientoURL', label: 'Procedimiento URL (registro de datos)' }
+          ], 'Gestión Comercial', false)
+        )}
+
+        {pestañaActivaPaso5 === 'validaciones' && (
+          renderCuadriculaEvaluacion('pecValidacionesCRM', [
+            { key: 'registroCRMOne', label: 'Registro correcto de crm one' },
+            { key: 'registroCRMVentas', label: 'Registro correcto en el crm ventas' },
+            { key: 'registroCodigoConclusion', label: 'Registro correcto en el código de conclusión' }
+          ], 'Validaciones y Registros en CRM', false)
+        )}
+      </div>
     </div>
   )
 
