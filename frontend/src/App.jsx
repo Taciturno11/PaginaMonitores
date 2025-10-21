@@ -277,6 +277,13 @@ function App() {
           console.log('✅ Monitoreo guardado en BD:', data);
           setTiempoFinal(tiempoMonitoreo);
           setMostrarFormulario(false);
+          
+          // Resetear estado inmediatamente para permitir nueva llamada
+          setLlamada(null);
+          setTiempoFinal(null);
+          setMonitoreoActivo(false);
+          setTiempoMonitoreo(0);
+          setContadorInicial(null);
         } else {
           console.error('❌ Error al guardar monitoreo:', data);
           alert('Error al guardar la evaluación');
@@ -460,23 +467,26 @@ function App() {
             </div>
           </div>
 
-          <button 
-            className="btn-buscar"
-            onClick={obtenerLlamadaAleatoria}
-            disabled={loading}
-          >
-            {loading ? (
-              <>
-                <Icon icon="mdi:loading" className="animate-spin" style={{marginRight: '8px'}} />
-                Buscando...
-              </>
-            ) : (
-              <>
-                <Icon icon="mdi:dice-6" style={{marginRight: '8px'}} />
-                Obtener Llamada Aleatoria
-              </>
-            )}
-          </button>
+          {/* Botón solo visible cuando NO hay llamada activa */}
+          {!llamada && (
+            <button 
+              className="btn-buscar"
+              onClick={obtenerLlamadaAleatoria}
+              disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <Icon icon="mdi:loading" className="animate-spin" style={{marginRight: '8px'}} />
+                  Buscando...
+                </>
+              ) : (
+                <>
+                  <Icon icon="mdi:dice-6" style={{marginRight: '8px'}} />
+                  Obtener Llamada Aleatoria
+                </>
+              )}
+            </button>
+          )}
 
           {/* Contador y cronómetro debajo de los filtros */}
           {llamada && !mostrarFormulario && (

@@ -71,6 +71,20 @@
   background: rgba(255, 255, 255, 0.3);
 }
 
+.btn-cerrar svg {
+  width: 24px;
+  height: 24px;
+  color: var(--primary-2);
+  stroke: var(--primary-2);
+  fill: var(--primary-2);
+}
+
+.btn-cerrar:hover svg {
+  color: var(--primary-2);
+  stroke: var(--primary-2);
+  fill: var(--primary-2);
+}
+
 /* Barra de Progreso */
 .barra-progreso {
   background: var(--primary-4);
@@ -217,9 +231,9 @@
 .radio-option {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 20px;
   cursor: pointer;
-  padding: 8px 12px;
+  padding: 12px 18px;
   border-radius: 6px;
   transition: all 0.3s ease;
   background: var(--primary-2);
@@ -233,14 +247,20 @@
 
 .radio-option input[type="radio"] {
   margin: 0;
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   accent-color: var(--primary-3);
+  cursor: pointer;
+  flex-shrink: 0;
 }
 
 .radio-option span {
-  font-size: 14px;
+  font-size: 15px;
   color: var(--primary-1);
+  font-weight: 500;
+  line-height: 1.4;
+  margin-left: 0;
+  padding-left: 0;
 }
 
 /* Cuadrícula de Evaluación */
