@@ -675,7 +675,8 @@ function EncuestaMonitoreo({ llamada, onCerrar }) {
             <h2>PLANTILLA DE MONITOREO</h2>
           </div>
           <button className="btn-cerrar" onClick={onCerrar}>
-            <Icon icon="mdi:close" />
+            <Icon icon="mdi:close" style={{fontSize: '24px', color: 'white', display: 'block'}} />
+            <span style={{position: 'absolute', color: 'white', fontSize: '20px', fontWeight: 'bold'}}>×</span>
           </button>
         </div>
 

@@ -55,8 +55,8 @@
 
 .btn-cerrar {
   background: rgba(255, 255, 255, 0.2);
-  border: none;
-  color: var(--primary-2);
+  border: 2px solid rgb(235, 221, 221);
+  color: white;
   width: 40px;
   height: 40px;
   border-radius: 8px;
@@ -65,24 +65,21 @@
   justify-content: center;
   cursor: pointer;
   transition: all 0.25s;
+  position: relative;
+  z-index: 1000;
 }
 
 .btn-cerrar:hover {
   background: rgba(255, 255, 255, 0.3);
 }
 
-.btn-cerrar svg {
-  width: 24px;
-  height: 24px;
-  color: var(--primary-2);
-  stroke: var(--primary-2);
-  fill: var(--primary-2);
-}
-
-.btn-cerrar:hover svg {
-  color: var(--primary-2);
-  stroke: var(--primary-2);
-  fill: var(--primary-2);
+.btn-cerrar svg,
+.btn-cerrar .iconify {
+  width: 24px !important;
+  height: 24px !important;
+  display: block !important;
+  color: white !important;
+  font-size: 24px !important;
 }
 
 /* Barra de Progreso */
