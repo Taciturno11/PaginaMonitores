@@ -126,13 +126,57 @@ header p {
   gap: 20px;
 }
 
-.filtros-container h2 {
-  margin-top: 0;
+.filtros-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.filtros-header h2 {
+  margin: 0;
   color: var(--primary-1);
   border-bottom: 2px solid var(--primary-3);
   padding-bottom: 12px;
   font-size: 1.4rem;
   font-weight: 700;
+}
+
+.filtros-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-toggle-encuesta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0.6em 1.2em;
+  border-radius: 8px;
+  border: 1px solid var(--primary-3);
+  font-size: 1em;
+  font-weight: 600;
+  font-family: inherit;
+  background-color: var(--primary-2);
+  color: var(--primary-1);
+  cursor: pointer;
+  transition: all 0.25s;
+}
+
+.btn-toggle-encuesta:hover {
+  background-color: var(--primary-1);
+  border-color: var(--primary-1);
+  color: var(--primary-2);
+}
+
+.btn-toggle-encuesta.activo {
+  background-color: var(--primary-3);
+  color: var(--primary-2);
+}
+
+.btn-toggle-encuesta.activo:hover {
+  background-color: var(--primary-1);
+  border-color: var(--primary-1);
 }
 
 .filtros-grid {

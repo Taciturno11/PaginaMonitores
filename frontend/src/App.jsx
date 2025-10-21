@@ -7,6 +7,7 @@ import HistorialPersonal from './HistorialPersonal'
 import HistorialGeneral from './HistorialGeneral'
 import Reporte from './Reporte'
 import FormularioEvaluacion from './FormularioEvaluacion'
+import EncuestaMonitoreo from './EncuestaMonitoreo'
 import { io } from 'socket.io-client'
 import { Icon } from '@iconify/react'
 
@@ -54,6 +55,7 @@ function App() {
   const [tiempoFinal, setTiempoFinal] = useState(null);
   const [inicioMonitoreo, setInicioMonitoreo] = useState(null);
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
+  const [mostrarEncuesta, setMostrarEncuesta] = useState(false);
 
   const API_URL = import.meta.env.VITE_API_URL;
   const [socket, setSocket] = useState(null);
@@ -348,7 +350,19 @@ function App() {
   return (
           <div className="content-layout">
           <div className="filtros-container">
-          <h2>Filtros de Búsqueda</h2>
+          <div className="filtros-header">
+            <h2>Filtros de Búsqueda</h2>
+            <div className="filtros-actions">
+              <button 
+                className={`btn-toggle-encuesta ${mostrarEncuesta ? 'activo' : ''}`}
+                onClick={() => setMostrarEncuesta(!mostrarEncuesta)}
+                title={mostrarEncuesta ? 'Ocultar encuesta' : 'Mostrar encuesta'}
+              >
+                <Icon icon="mdi:clipboard-text" />
+                {mostrarEncuesta ? 'Ocultar Encuesta' : 'Mostrar Encuesta'}
+              </button>
+            </div>
+          </div>
           
           <div className="filtros-grid">
             <div className="filtro-item">
@@ -503,6 +517,14 @@ function App() {
               tiempoMonitoreo={formatearTiempo(tiempoMonitoreo)}
               onGuardar={handleGuardarEvaluacion}
               onCancelar={handleCancelarEvaluacion}
+            />
+          )}
+
+          {/* Encuesta de monitoreo */}
+          {mostrarEncuesta && (
+            <EncuestaMonitoreo
+              llamada={llamada}
+              onCerrar={() => setMostrarEncuesta(false)}
             />
           )}
         </div>

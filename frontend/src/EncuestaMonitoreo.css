@@ -1,0 +1,443 @@
+/* EncuestaMonitoreo.css - Usando la misma estética existente */
+
+.encuesta-monitoreo-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+  padding: 20px;
+}
+
+.encuesta-monitoreo-container {
+  background: var(--primary-5);
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  width: 100%;
+  max-width: 1200px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+}
+
+.encuesta-header {
+  background: var(--primary-3);
+  color: var(--primary-2);
+  padding: 20px 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.encuesta-titulo {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.logo-claro {
+  height: 40px;
+  width: auto;
+}
+
+.encuesta-titulo h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.btn-cerrar {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: var(--primary-2);
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.25s;
+}
+
+.btn-cerrar:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Barra de Progreso */
+.barra-progreso {
+  background: var(--primary-4);
+  padding: 20px 30px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.progreso-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.paso-actual {
+  font-weight: 600;
+  color: var(--primary-1);
+  font-size: 16px;
+}
+
+.porcentaje {
+  font-weight: 700;
+  color: var(--primary-3);
+  font-size: 18px;
+}
+
+.barra-contenedor {
+  background: #e5e7eb;
+  height: 8px;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 15px;
+}
+
+.barra-llenado {
+  background: var(--primary-3);
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.pasos-indicadores {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.indicador-paso {
+  width: 35px;
+  height: 35px;
+  border-radius: 8px;
+  background: #e5e7eb;
+  color: #718096;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.indicador-paso.completado {
+  background: var(--primary-3);
+  color: var(--primary-2);
+}
+
+/* Contenido de la Encuesta */
+.encuesta-content {
+  flex: 1;
+  padding: 30px;
+  overflow-y: auto;
+  background: var(--primary-5);
+}
+
+.paso-contenido h3 {
+  color: var(--primary-1);
+  margin-bottom: 25px;
+  font-size: 20px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  border-bottom: 2px solid var(--primary-3);
+  padding-bottom: 12px;
+}
+
+/* Formularios - Usando estilos existentes */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group.full-width {
+  grid-column: 1 / -1;
+}
+
+.form-group label {
+  font-weight: 600;
+  color: var(--primary-1);
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+  width: 100%;
+  padding: 14px 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 500;
+  transition: all 0.2s;
+  box-sizing: border-box;
+  background: var(--primary-2);
+  color: var(--primary-1);
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: var(--primary-3);
+  border-width: 2px;
+  box-shadow: 0 0 0 3px rgba(55, 65, 81, 0.1);
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+/* Radio Groups - Usando estilos existentes */
+.radio-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.radio-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+  background: var(--primary-2);
+  border: 2px solid #e0e0e0;
+}
+
+.radio-option:hover {
+  border-color: var(--primary-3);
+  background: #f8f9ff;
+}
+
+.radio-option input[type="radio"] {
+  margin: 0;
+  width: 16px;
+  height: 16px;
+  accent-color: var(--primary-3);
+}
+
+.radio-option span {
+  font-size: 14px;
+  color: var(--primary-1);
+}
+
+/* Cuadrícula de Evaluación */
+.evaluacion-seccion {
+  margin-bottom: 30px;
+}
+
+.evaluacion-seccion h4 {
+  color: var(--primary-1);
+  margin-bottom: 15px;
+  font-size: 16px;
+  font-weight: 600;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--primary-3);
+}
+
+.cuadricula-evaluacion {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--primary-5);
+}
+
+.cuadricula-header {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  background: var(--primary-4);
+  font-weight: 600;
+  color: var(--primary-1);
+}
+
+.cuadricula-header > div {
+  padding: 12px 16px;
+  border-right: 1px solid #e5e7eb;
+  text-align: center;
+  font-size: 13px;
+}
+
+.cuadricula-header > div:last-child {
+  border-right: none;
+}
+
+.cuadricula-fila {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.cuadricula-fila:last-child {
+  border-bottom: none;
+}
+
+.cuadricula-fila > div {
+  padding: 12px 16px;
+  border-right: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cuadricula-fila > div:last-child {
+  border-right: none;
+}
+
+.col-item {
+  justify-content: flex-start !important;
+  text-align: left;
+  font-size: 14px;
+  color: var(--primary-1);
+}
+
+.col-si,
+.col-no,
+.col-na {
+  justify-content: center;
+}
+
+.col-si input[type="radio"] {
+  accent-color: #38a169;
+}
+
+.col-no input[type="radio"] {
+  accent-color: #e53e3e;
+}
+
+.col-na input[type="radio"] {
+  accent-color: #718096;
+}
+
+/* Navegación - Usando estilos de botones existentes */
+.encuesta-navegacion {
+  background: var(--primary-4);
+  padding: 20px 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid #e5e7eb;
+}
+
+.btn-anterior,
+.btn-siguiente,
+.btn-finalizar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0.6em 1.2em;
+  border-radius: 8px;
+  border: 1px solid var(--primary-3);
+  font-size: 1em;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.25s;
+}
+
+.btn-anterior {
+  background-color: var(--primary-2);
+  color: var(--primary-1);
+  border-color: #e5e7eb;
+}
+
+.btn-anterior:hover:not(:disabled) {
+  background-color: #f3f4f6;
+  border-color: var(--primary-3);
+}
+
+.btn-anterior:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-siguiente,
+.btn-finalizar {
+  background-color: var(--primary-3);
+  color: var(--primary-2);
+}
+
+.btn-siguiente:hover,
+.btn-finalizar:hover {
+  background-color: var(--primary-1);
+  border-color: var(--primary-1);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .encuesta-monitoreo-container {
+    margin: 10px;
+    max-height: 95vh;
+  }
+  
+  .encuesta-header {
+    padding: 15px 20px;
+  }
+  
+  .encuesta-titulo h2 {
+    font-size: 18px;
+  }
+  
+  .barra-progreso {
+    padding: 15px 20px;
+  }
+  
+  .encuesta-content {
+    padding: 20px;
+  }
+  
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .cuadricula-header,
+  .cuadricula-fila {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  
+  .cuadricula-header > div,
+  .cuadricula-fila > div {
+    border-right: none;
+    border-bottom: 1px solid #e5e7eb;
+    padding: 8px 12px;
+  }
+  
+  .cuadricula-fila > div:last-child {
+    border-bottom: none;
+  }
+  
+  .encuesta-navegacion {
+    padding: 15px 20px;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .btn-anterior,
+  .btn-siguiente,
+  .btn-finalizar {
+    width: 100%;
+    justify-content: center;
+  }
+}
