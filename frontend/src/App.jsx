@@ -624,6 +624,16 @@ function App() {
                       <span className="valor">{llamada.Cargo}</span>
                     </div>
                     <div className="detalle-linea">
+                      <Icon icon="mdi:calendar-clock" className="icono" />
+                      <span className="label">Antigüedad:</span>
+                      <span className="valor">
+                        {llamada.AntiguedadAnios ? `${llamada.AntiguedadAnios} año${llamada.AntiguedadAnios !== 1 ? 's' : ''}` : ''}
+                        {llamada.AntiguedadMeses && llamada.AntiguedadAnios ? ` y ${llamada.AntiguedadMeses % 12} mes${(llamada.AntiguedadMeses % 12) !== 1 ? 'es' : ''}` : ''}
+                        {llamada.AntiguedadMeses && !llamada.AntiguedadAnios ? `${llamada.AntiguedadMeses} mes${llamada.AntiguedadMeses !== 1 ? 'es' : ''}` : ''}
+                        {!llamada.AntiguedadMeses && !llamada.AntiguedadAnios ? 'N/A' : ''}
+                      </span>
+                    </div>
+                    <div className="detalle-linea">
                       <Icon icon="mdi:check-circle" className="icono" />
                       <span className="label">Estado:</span>
                       <span className="valor badge-estado">{llamada.EstadoEmpleado}</span>

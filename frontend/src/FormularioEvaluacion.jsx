@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import './FormularioEvaluacion.css';
 
 const FormularioEvaluacion = ({ llamada, tiempoMonitoreo, onGuardar, onCancelar }) => {
@@ -7,6 +7,46 @@ const FormularioEvaluacion = ({ llamada, tiempoMonitoreo, onGuardar, onCancelar 
   const [causa, setCausa] = useState('');
   const [motivo, setMotivo] = useState('');
   const [fueSatisfactoriaATC, setFueSatisfactoriaATC] = useState('');
+  const [evaluacionCompletada, setEvaluacionCompletada] = useState(false);
+
+  // Autocompletar evaluación basado en Estado IPC
+  useEffect(() => {
+    if (llamada && llamada.Tipificacion_Estado_IPC) {
+      const estadoIPC = llamada.Tipificacion_Estado_IPC;
+      
+      // Estados que son VENTAS
+      const estadosVentas = [
+        'Agendado',
+        'Aceptacion No Efectiva',
+        'Llamada Saliente',
+        'No Acepta',
+        'Aceptados',
+        'No Desea Recibir Llamada',
+        'No Contactado',
+        'Agente Cierra Sin Tipificar',
+        'Contacto AGL'
+      ];
+      
+      // Si el estado es uno de VENTAS
+      if (estadosVentas.includes(estadoIPC)) {
+        setTipoServicio('VENTAS');
+        
+        // Si es "Aceptados" = venta exitosa (SI)
+        if (estadoIPC === 'Aceptados') {
+          setFueVenta('SI');
+          setEvaluacionCompletada(true);
+        } else {
+          // Cualquier otro estado = no venta (NO)
+          setFueVenta('NO');
+        }
+      } else {
+        // Si no es ningún estado de VENTAS, es ATC
+        setTipoServicio('ATC');
+        setFueSatisfactoriaATC('SI'); // Por defecto satisfactoria
+        setEvaluacionCompletada(true);
+      }
+    }
+  }, [llamada])
 
   // Datos para VENTAS
   const opcionesVentas = {
@@ -186,196 +226,164 @@ const FormularioEvaluacion = ({ llamada, tiempoMonitoreo, onGuardar, onCancelar 
         </div>
 
         <div className="formulario-content">
-
-          {/* Tipo de servicio */}
-          <div className="campo-formulario">
-            <label>Tipo de Servicio:</label>
-            <div className="radio-group">
-              <label className="radio-option">
-                <input
-                  type="radio"
-                  name="tipoServicio"
-                  value="VENTAS"
-                  checked={tipoServicio === 'VENTAS'}
-                  onChange={handleTipoServicioChange}
-                />
-                <span className="radio-label">VENTAS</span>
-              </label>
-              <label className="radio-option">
-                <input
-                  type="radio"
-                  name="tipoServicio"
-                  value="ATC"
-                  checked={tipoServicio === 'ATC'}
-                  onChange={handleTipoServicioChange}
-                />
-                <span className="radio-label">ATC</span>
-              </label>
-            </div>
-          </div>
-
-          {/* Evaluación para VENTAS */}
-          {tipoServicio === 'VENTAS' && (
+          {/* Solo mostrar contenido si ya tenemos tipo de servicio */}
+          {tipoServicio && (
             <>
-              {/* Pregunta si fue venta */}
-              <div className="campo-formulario">
-                <label>¿Fue una Venta?</label>
-                <div className="radio-group">
-                  <label className="radio-option">
-                    <input
-                      type="radio"
-                      name="fueVenta"
-                      value="SI"
-                      checked={fueVenta === 'SI'}
-                      onChange={(e) => setFueVenta(e.target.value)}
-                    />
-                    <span className="radio-label">Sí</span>
-                  </label>
-                  <label className="radio-option">
-                    <input
-                      type="radio"
-                      name="fueVenta"
-                      value="NO"
-                      checked={fueVenta === 'NO'}
-                      onChange={(e) => setFueVenta(e.target.value)}
-                    />
-                    <span className="radio-label">No</span>
-                  </label>
-                </div>
-              </div>
-
-              {/* Campos de causa y motivo solo si NO fue venta */}
-              {fueVenta === 'NO' && (
-                <div className="evaluacion-grid">
-              {/* Causa */}
-              <div className="campo-formulario">
-                <label>Causa:</label>
-                <select
-                  value={causa}
-                  onChange={(e) => handleCausaChange(e.target.value)}
-                  className="select-campo"
-                >
-                  <option value="">Selecciona una causa</option>
-                  {Object.keys(opcionesVentas).map(causaKey => (
-                    <option key={causaKey} value={causaKey}>
-                      {causaKey}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Motivo */}
-              <div className="campo-formulario">
-                <label>Motivo:</label>
-                <select
-                  value={motivo}
-                  onChange={(e) => setMotivo(e.target.value)}
-                  className="select-campo"
-                  disabled={!causa}
-                >
-                  <option value="">Selecciona un motivo</option>
-                  {causa && opcionesVentas[causa]?.map(motivoItem => (
-                    <option key={motivoItem} value={motivoItem}>
-                      {motivoItem}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              {/* Campo Estado - Solo mostrar si NO es venta exitosa */}
+              {!(tipoServicio === 'VENTAS' && fueVenta === 'SI') && (
+                <div className="campo-estado">
+                  <label>Estado:</label>
+                  <div className="estado-badge">
+                    {tipoServicio === 'VENTAS' && fueVenta === 'NO' && (
+                      <span className="estado no-venta">✗ No Venta</span>
+                    )}
+                    {tipoServicio === 'ATC' && fueSatisfactoriaATC === 'SI' && (
+                      <span className="estado satisfactoria">✓ Satisfactoria</span>
+                    )}
+                    {tipoServicio === 'ATC' && fueSatisfactoriaATC === 'NO' && (
+                      <span className="estado no-satisfactoria">✗ No Satisfactoria</span>
+                    )}
+                  </div>
                 </div>
               )}
-            </>
-          )}
 
-          {/* Evaluación para ATC */}
-          {tipoServicio === 'ATC' && (
-            <>
-              <div className="campo-formulario">
-                <label>¿La llamada fue satisfactoria?</label>
-                <div className="radio-group">
-                  <label className="radio-option">
-                    <input
-                      type="radio"
-                      name="fueSatisfactoriaATC"
-                      value="SI"
-                      checked={fueSatisfactoriaATC === 'SI'}
-                      onChange={(e) => {
-                        setFueSatisfactoriaATC(e.target.value);
-                        setCausa('');
-                        setMotivo('');
-                      }}
-                    />
-                    <span className="radio-label">Sí</span>
-                  </label>
-                  <label className="radio-option">
-                    <input
-                      type="radio"
-                      name="fueSatisfactoriaATC"
-                      value="NO"
-                      checked={fueSatisfactoriaATC === 'NO'}
-                      onChange={(e) => {
-                        setFueSatisfactoriaATC(e.target.value);
-                        setCausa('');
-                        setMotivo('');
-                      }}
-                    />
-                    <span className="radio-label">No</span>
-                  </label>
-                </div>
-              </div>
+              {/* Evaluación para VENTAS */}
+              {tipoServicio === 'VENTAS' && (
+                <>
+                  {/* Si fue venta exitosa, mostrar badge */}
+                  {fueVenta === 'SI' && (
+                    <div className="evaluacion-badge">
+                      <h3>✓ Venta Exitosa</h3>
+                      <p>La evaluación está completa. Puedes guardar directamente.</p>
+                    </div>
+                  )}
 
-              {fueSatisfactoriaATC === 'NO' && (
-                <div className="evaluacion-grid">
-                  {/* Causa ATC */}
-                  <div className="campo-formulario">
-                    <label>Causa:</label>
-                    <select
-                      value={causa}
-                      onChange={(e) => handleCausaChange(e.target.value)}
-                      className="select-campo"
-                    >
-                      <option value="">Selecciona una causa</option>
-                      {Object.keys(opcionesATC).map(causaKey => (
-                        <option key={causaKey} value={causaKey}>
-                          {causaKey}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                  {/* Si NO fue venta, mostrar causa y motivo */}
+                  {fueVenta === 'NO' && (
+                    <div className="evaluacion-grid">
+                      {/* Causa */}
+                      <div className="campo-formulario">
+                        <label>Causa:</label>
+                        <select
+                          value={causa}
+                          onChange={(e) => handleCausaChange(e.target.value)}
+                          className="select-campo"
+                        >
+                          <option value="">Selecciona una causa</option>
+                          {Object.keys(opcionesVentas).map(causaKey => (
+                            <option key={causaKey} value={causaKey}>
+                              {causaKey}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
 
-                  {/* Motivo ATC */}
-                  <div className="campo-formulario">
-                    <label>Motivo:</label>
-                    <select
-                      value={motivo}
-                      onChange={(e) => setMotivo(e.target.value)}
-                      className="select-campo"
-                      disabled={!causa}
-                    >
-                      <option value="">Selecciona un motivo</option>
-                      {causa && opcionesATC[causa]?.map(motivoItem => (
-                        <option key={motivoItem} value={motivoItem}>
-                          {motivoItem}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
+                      {/* Motivo */}
+                      <div className="campo-formulario">
+                        <label>Motivo:</label>
+                        <select
+                          value={motivo}
+                          onChange={(e) => setMotivo(e.target.value)}
+                          className="select-campo"
+                          disabled={!causa}
+                        >
+                          <option value="">Selecciona un motivo</option>
+                          {causa && opcionesVentas[causa]?.map(motivoItem => (
+                            <option key={motivoItem} value={motivoItem}>
+                              {motivoItem}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {/* Evaluación para ATC */}
+              {tipoServicio === 'ATC' && (
+                <>
+                  {/* Si fue satisfactoria, mostrar badge */}
+                  {fueSatisfactoriaATC === 'SI' && (
+                    <div className="evaluacion-badge">
+                      <h3>✓ Llamada Satisfactoria</h3>
+                      <p>La evaluación está completa. Puedes guardar directamente.</p>
+                    </div>
+                  )}
+
+                  {/* Si NO fue satisfactoria, mostrar causa y motivo */}
+                  {fueSatisfactoriaATC === 'NO' && (
+                    <div className="evaluacion-grid">
+                      {/* Causa ATC */}
+                      <div className="campo-formulario">
+                        <label>Causa:</label>
+                        <select
+                          value={causa}
+                          onChange={(e) => handleCausaChange(e.target.value)}
+                          className="select-campo"
+                        >
+                          <option value="">Selecciona una causa</option>
+                          {Object.keys(opcionesATC).map(causaKey => (
+                            <option key={causaKey} value={causaKey}>
+                              {causaKey}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* Motivo ATC */}
+                      <div className="campo-formulario">
+                        <label>Motivo:</label>
+                        <select
+                          value={motivo}
+                          onChange={(e) => setMotivo(e.target.value)}
+                          className="select-campo"
+                          disabled={!causa}
+                        >
+                          <option value="">Selecciona un motivo</option>
+                          {causa && opcionesATC[causa]?.map(motivoItem => (
+                            <option key={motivoItem} value={motivoItem}>
+                              {motivoItem}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
             </>
           )}
         </div>
 
         <div className="formulario-actions">
-          <button className="btn-cancelar" onClick={onCancelar}>
-            Cancelar
-          </button>
-          <button 
-            className="btn-guardar" 
-            onClick={handleGuardar}
-            disabled={!puedeGuardar}
-          >
-            Guardar Evaluación
-          </button>
+          {evaluacionCompletada ? (
+            <>
+              <button className="btn-cancelar" onClick={onCancelar}>
+                Cancelar
+              </button>
+              <button 
+                className="btn-guardar btn-guardar-auto" 
+                onClick={handleGuardar}
+                disabled={!puedeGuardar}
+              >
+                ✓ Guardar Automáticamente
+              </button>
+            </>
+          ) : (
+            <>
+              <button className="btn-cancelar" onClick={onCancelar}>
+                Cancelar
+              </button>
+              <button 
+                className="btn-guardar" 
+                onClick={handleGuardar}
+                disabled={!puedeGuardar}
+              >
+                Guardar Evaluación
+              </button>
+            </>
+          )}
         </div>
     </div>
   );

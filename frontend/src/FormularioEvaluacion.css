@@ -201,6 +201,96 @@
   box-shadow: none;
 }
 
+.btn-guardar-auto {
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  color: white;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+}
+
+.btn-guardar-auto:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(34, 197, 94, 0.4);
+}
+
+.btn-guardar-auto:disabled {
+  background: #e9ecef;
+  color: #999;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.evaluacion-badge {
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+  border: 2px solid var(--primary-3);
+  border-radius: 12px;
+  padding: 24px;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.evaluacion-badge h3 {
+  margin: 0 0 8px 0;
+  color: var(--primary-1);
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.evaluacion-badge p {
+  margin: 0;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.campo-estado {
+  margin-bottom: 20px;
+}
+
+.campo-estado label {
+  display: block;
+  font-weight: 600;
+  color: var(--primary-1);
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.estado-badge {
+  display: inline-block;
+}
+
+.estado {
+  display: inline-block;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.estado.venta {
+  background: #dcfce7;
+  color: #15803d;
+  border: 2px solid #86efac;
+}
+
+.estado.no-venta {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 2px solid #fca5a5;
+}
+
+.estado.satisfactoria {
+  background: #dbeafe;
+  color: #1e40af;
+  border: 2px solid #93c5fd;
+}
+
+.estado.no-satisfactoria {
+  background: #fed7aa;
+  color: #9a3412;
+  border: 2px solid #fdba74;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .evaluacion-grid {

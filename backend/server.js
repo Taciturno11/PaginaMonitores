@@ -198,10 +198,15 @@ app.post('/api/llamada-aleatoria', async (req, res) => {
       }
     }
     
-    // Construir query con filtros opcionales
+    // Construir query con filtros opcionales y JOIN con PRI.Empleados
     let query = `
-      SELECT TOP 1 *
-      FROM [Partner].[dbo].[Reporte_Llamadas_Detalle]
+      SELECT 
+        rld.*,
+        DATEDIFF(MONTH, e.FechaContratacion, GETDATE()) AS AntiguedadMeses,
+        DATEDIFF(YEAR, e.FechaContratacion, GETDATE()) AS AntiguedadAnios,
+        e.FechaContratacion AS FechaContratacion
+      FROM [Partner].[dbo].[Reporte_Llamadas_Detalle] rld
+      LEFT JOIN [Partner].[PRI].[Empleados] e ON LEFT(rld.DNIEmpleado, 8) = LEFT(e.DNI, 8)
       WHERE 1=1
         AND ID_Largo IS NOT NULL
         AND ID_Largo != ''
@@ -250,11 +255,6 @@ app.post('/api/llamada-aleatoria', async (req, res) => {
       params.push({ name: 'cola', type: sql.NVarChar, value: cola });
     }
     
-    // Solo usar orden aleatorio si NO se está filtrando por ID_Largo específico
-    if (!idLargo) {
-      query += ` ORDER BY NEWID()`; // Orden aleatorio
-    }
-    
     const request = pool.request();
     params.forEach(param => {
       request.input(param.name, param.type, param.value);
@@ -266,7 +266,69 @@ app.post('/api/llamada-aleatoria', async (req, res) => {
       return res.status(200).json({ error: 'No se encontraron llamadas con esos filtros' });
     }
     
-    res.json(result.recordset[0]);
+    // Obtener todas las llamadas que cumplen los filtros
+    const todasLasLlamadas = result.recordset;
+    
+    // Estados que son VENTAS (todos los estados IPC mencionados)
+    const estadosVentas = [
+      'Agendado',
+      'Aceptacion No Efectiva',
+      'Llamada Saliente',
+      'No Acepta',
+      'Aceptados',
+      'No Desea Recibir Llamada',
+      'No Contactado',
+      'Agente Cierra Sin Tipificar',
+      'Contacto AGL'
+    ];
+    
+    // Separar llamadas de VENTAS y ATC
+    const llamadasVentas = todasLasLlamadas.filter(l => 
+      l.Tipificacion_Estado_IPC && estadosVentas.includes(l.Tipificacion_Estado_IPC)
+    );
+    const llamadasATC = todasLasLlamadas.filter(l => 
+      !l.Tipificacion_Estado_IPC || !estadosVentas.includes(l.Tipificacion_Estado_IPC)
+    );
+    
+    // Si hay llamadas de VENTAS, aplicar distribución 70-30
+    if (llamadasVentas.length > 0) {
+      // Generar número aleatorio entre 0 y 1
+      const random = Math.random();
+      
+      // Separar llamadas de VENTAS en "No Venta" y "Venta"
+      const llamadasNoVenta = llamadasVentas.filter(l => l.Tipificacion_Estado_IPC !== 'Aceptados');
+      const llamadasVenta = llamadasVentas.filter(l => l.Tipificacion_Estado_IPC === 'Aceptados');
+      
+      // 70% probabilidad de "No Venta", 30% probabilidad de "Venta"
+      if (random <= 0.7) {
+        // 70% - Seleccionar una llamada de "No Venta"
+        if (llamadasNoVenta.length > 0) {
+          const randomIndex = Math.floor(Math.random() * llamadasNoVenta.length);
+          return res.json(llamadasNoVenta[randomIndex]);
+        }
+        // Si no hay llamadas de "No Venta", devolver una aleatoria de VENTAS
+        const randomIndex = Math.floor(Math.random() * llamadasVentas.length);
+        return res.json(llamadasVentas[randomIndex]);
+      } else {
+        // 30% - Seleccionar una llamada de "Venta"
+        if (llamadasVenta.length > 0) {
+          const randomIndex = Math.floor(Math.random() * llamadasVenta.length);
+          return res.json(llamadasVenta[randomIndex]);
+        }
+        // Si no hay llamadas de "Venta", devolver una aleatoria de VENTAS
+        const randomIndex = Math.floor(Math.random() * llamadasVentas.length);
+        return res.json(llamadasVentas[randomIndex]);
+      }
+    }
+    
+    // Si solo hay llamadas ATC, devolver una aleatoria
+    if (llamadasATC.length > 0) {
+      const randomIndex = Math.floor(Math.random() * llamadasATC.length);
+      return res.json(llamadasATC[randomIndex]);
+    }
+    
+    // Si no hay llamadas, devolver la primera
+    res.json(todasLasLlamadas[0]);
   } catch (error) {
     console.error('Error al obtener llamada:', error);
     res.status(500).json({ error: 'Error al obtener llamada', detalle: error.message });
