@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Icon } from '@iconify/react'
 import './EncuestaMonitoreo.css'
 
@@ -112,6 +112,107 @@ function EncuestaMonitoreo({ llamada, onCerrar }) {
 
   const totalPasos = 7
 
+  // Autocompletar campos con datos de la llamada
+  useEffect(() => {
+    console.log('🔍 EncuestaMonitoreo - llamada recibida:', llamada)
+    
+    if (llamada) {
+      // Formatear fecha de llamada (YYYY-MM-DD)
+      const formatearFecha = (fechaString) => {
+        if (!fechaString) return ''
+        
+        // Si ya está en formato YYYY-MM-DD
+        if (fechaString.includes('-') && fechaString.length === 10) {
+          return fechaString
+        }
+        
+        // Si viene en formato DD/MM/YYYY
+        if (fechaString.includes('/')) {
+          const [dia, mes, anio] = fechaString.split('/')
+          return `${anio}-${mes.padStart(2, '0')}-${dia.padStart(2, '0')}`
+        }
+        
+        // Si es un objeto Date o string ISO
+        try {
+          const fecha = new Date(fechaString)
+          return fecha.toISOString().split('T')[0]
+        } catch {
+          return ''
+        }
+      }
+
+      // Formatear duración (hh:mm:ss)
+      const formatearDuracion = (duracionSegundos) => {
+        if (!duracionSegundos) return ''
+        const horas = Math.floor(duracionSegundos / 3600)
+        const minutos = Math.floor((duracionSegundos % 3600) / 60)
+        const segundos = duracionSegundos % 60
+        return `${String(horas).padStart(2, '0')}:${String(minutos).padStart(2, '0')}:${String(segundos).padStart(2, '0')}`
+      }
+
+      // Obtener fecha actual para fecha de monitoreo
+      const fechaActual = new Date().toISOString().split('T')[0]
+
+      // Determinar tipo de gestión basado en la campaña
+      const determinarTipoGestion = (campana) => {
+        if (!campana) return ''
+        const campanaUpper = campana.toUpperCase()
+        if (campanaUpper.includes('OUTBOUND') || campanaUpper.includes('PORTABILIDAD') || campanaUpper.includes('MIGRACION') || campanaUpper.includes('RENOVACION')) {
+          return 'OUTBOUND'
+        }
+        return 'INBOUND'
+      }
+
+      // Mapear campaña a campanasOutbound
+      const mapearCampanaOutbound = (campana) => {
+        if (!campana) return ''
+        const campanaUpper = campana.toUpperCase()
+        if (campanaUpper.includes('PORTABILIDAD')) {
+          return 'PORTABILIDAD - LINEA NUEVA'
+        } else if (campanaUpper.includes('MIGRACION')) {
+          return 'MIGRACIÓN'
+        } else if (campanaUpper.includes('RENOVACION')) {
+          return 'RENOVACIÓN'
+        }
+        return ''
+      }
+
+      setFormData(prev => ({
+        ...prev,
+        // Paso 1: Datos Generales
+        idInteraccion: llamada.ID_Largo || '',
+        telefono: llamada.Numero || '',
+        fechaLlamada: formatearFecha(llamada.Fecha),
+        fechaMonitoreo: fechaActual,
+        duracionLlamada: formatearDuracion(llamada.Duracion),
+        nombreAsesor: llamada.NombreCompletoAgente || '',
+        usuarioAsesor: llamada.Usuario_Llamada_Origen || '',
+        
+        // Paso 2: Clasificación de Gestión
+        tipoGestion: determinarTipoGestion(llamada.Campaña_Agente),
+        campanasOutbound: mapearCampanaOutbound(llamada.Campaña_Agente),
+        tipoMonitoreo: 'Aleatorio', // Por defecto es aleatorio
+        productoOfertado: llamada.Campaña_Agente || ''
+      }))
+      
+      console.log('✅ Autocompletado realizado con datos:', {
+        idInteraccion: llamada.ID_Largo || '',
+        telefono: llamada.Numero || '',
+        fechaLlamada: formatearFecha(llamada.Fecha),
+        fechaMonitoreo: fechaActual,
+        duracionLlamada: formatearDuracion(llamada.Duracion),
+        nombreAsesor: llamada.NombreCompletoAgente || '',
+        usuarioAsesor: llamada.Usuario_Llamada_Origen || '',
+        tipoGestion: determinarTipoGestion(llamada.Campaña_Agente),
+        campanasOutbound: mapearCampanaOutbound(llamada.Campaña_Agente),
+        tipoMonitoreo: 'Aleatorio',
+        productoOfertado: llamada.Campaña_Agente || ''
+      })
+    } else {
+      console.log('⚠️ No hay llamada disponible para autocompletar')
+    }
+  }, [llamada])
+
   const handleInputChange = (e) => {
     const { name, value } = e.target
     setFormData(prev => ({
@@ -119,6 +220,11 @@ function EncuestaMonitoreo({ llamada, onCerrar }) {
       [name]: value
     }))
   }
+
+  // Log para debug
+  useEffect(() => {
+    console.log('📋 FormData actual:', formData)
+  }, [formData])
 
   const handleRadioChange = (seccion, campo, valor) => {
     setFormData(prev => ({
