@@ -561,6 +561,30 @@ function App() {
                   Detalle de la Llamada
                 </h2>
               
+                {/* Reproductor de audio */}
+                <div className="audio-player-container">
+                  <h3>
+                    <Icon icon="mdi:play-circle" style={{marginRight: '8px'}} />
+                    Audio de la Llamada
+                  </h3>
+                  <audio 
+                    controls 
+                    preload="none" 
+                    className="audio-player"
+                    onError={(e) => {
+                      console.error('Error al cargar audio:', e);
+                      console.error('URL que falló:', e.target.src);
+                    }}
+                    onLoadStart={() => console.log('Iniciando carga del audio...')}
+                    onLoadedData={() => console.log('Audio cargado correctamente')}
+                    onCanPlay={() => console.log('Audio listo para reproducir')}
+                  >
+                    <source src={`${API_URL}/audio/test-audio-1-converted.mp3`} type="audio/mpeg" />
+                    <source src={`${API_URL}/audio/test-audio-2-converted.mp3`} type="audio/mpeg" />
+                    Tu navegador no soporta el elemento de audio.
+                  </audio>
+                </div>
+              
                 <div className="detalle-lineas">
                   <div className="detalle-seccion">
                     <h3>

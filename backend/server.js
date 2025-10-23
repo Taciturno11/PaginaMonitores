@@ -1,5 +1,6 @@
 // Carga las variables de entorno
 const os = require('os');
+const path = require('path');
 require('dotenv').config(); 
 const cors = require('cors');
 const express = require('express');
@@ -17,6 +18,10 @@ const io = new Server(server, {
 });
 
 app.use(cors());
+app.use(express.json());
+
+// Servir archivos de audio desde el backend
+app.use('/audio', express.static(path.join(__dirname, 'public/audio')));
 
 const PORT = process.env.PORT; 
 

@@ -311,10 +311,10 @@ header p {
 }
 
 .cronometro-activo {
-  background: var(--primary-3);
+  background: var(--primary-2ary-3);
   padding: 20px;
   border-radius: 10px;
-  box-shadow: 0 4px 12px rgba(255, 71, 87, 0.3);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
   text-align: center;
   display: flex;
   flex-direction: column;
@@ -325,7 +325,7 @@ header p {
 .cronometro-tiempo {
   font-size: 2.2rem;
   font-weight: bold;
-  color: white;
+  color: rgb(0, 0, 0);
   font-family: 'Courier New', monospace;
   letter-spacing: 3px;
   width: 100%;
@@ -389,6 +389,45 @@ header p {
   padding-bottom: 10px;
   font-size: 1.5rem;
   margin-bottom: 20px;
+}
+
+.audio-player-container {
+  background: white;
+  padding: 12px 15px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.audio-player-container h3 {
+  margin: 0 0 10px 0;
+  color: #333;
+  font-size: 1rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+}
+
+.audio-player {
+  width: 100%;
+  height: 40px;
+  border-radius: 6px;
+  background: white;
+}
+
+.audio-player::-webkit-media-controls-panel {
+  background-color: white;
+}
+
+.audio-player::-webkit-media-controls-play-button {
+  background-color: #3073F0;
+  border-radius: 50%;
+}
+
+.audio-player::-webkit-media-controls-current-time-display,
+.audio-player::-webkit-media-controls-time-remaining-display {
+  color: #333;
+  font-weight: 600;
 }
 
 .detalle-lineas {
