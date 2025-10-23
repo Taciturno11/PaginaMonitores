@@ -534,6 +534,7 @@ function App() {
           {mostrarEncuesta && (
             <EncuestaMonitoreo
               llamada={llamada}
+              usuario={usuario}
               onCerrar={() => setMostrarEncuesta(false)}
             />
           )}

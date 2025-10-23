@@ -2,11 +2,13 @@ import { useState, useEffect } from 'react'
 import { Icon } from '@iconify/react'
 import './EncuestaMonitoreo.css'
 
-function EncuestaMonitoreo({ llamada, onCerrar }) {
+function EncuestaMonitoreo({ llamada, usuario, onCerrar }) {
   const [pasoActual, setPasoActual] = useState(1)
   const [pestañaActivaPaso3, setPestañaActivaPaso3] = useState('saluda')
   const [pestañaActivaPaso4, setPestañaActivaPaso4] = useState('informacion')
   const [pestañaActivaPaso5, setPestañaActivaPaso5] = useState('gestion')
+  const [pestañaActivaPaso7, setPestañaActivaPaso7] = useState('cierre')
+  const [mostrarOtrosProveedores, setMostrarOtrosProveedores] = useState(false)
   const [formData, setFormData] = useState({
     // Paso 1: Datos Generales
     proveedor: '',
@@ -115,6 +117,7 @@ function EncuestaMonitoreo({ llamada, onCerrar }) {
   // Autocompletar campos con datos de la llamada
   useEffect(() => {
     console.log('🔍 EncuestaMonitoreo - llamada recibida:', llamada)
+    console.log('👤 EncuestaMonitoreo - usuario recibido:', usuario)
     
     if (llamada) {
       // Formatear fecha de llamada (YYYY-MM-DD)
@@ -177,9 +180,54 @@ function EncuestaMonitoreo({ llamada, onCerrar }) {
         return ''
       }
 
+      // Mapear nombre del monitor a las opciones disponibles de analista
+      const mapearAnalistaCalidad = (nombreCompleto) => {
+        if (!nombreCompleto) return ''
+        
+        const nombreCompletoUpper = nombreCompleto.toUpperCase()
+        console.log('🔍 Buscando analista para:', nombreCompletoUpper)
+        
+        // Mapeo de nombres completos a opciones disponibles
+        const mapeoAnalistas = {
+          'ANDREA MORELIA TEJEDA SALINAS': 'Romina Herrera',
+          'EVELYN BETZABETH VILLA ARAMBURU': 'Evelyn villa',
+          'JEANPAUL AGUILAR PEREZ': 'Jean Paul Aguilar',
+          'JEAN PAUL AGUILAR PEREZ': 'Jean Paul Aguilar',
+          'YADHIRA MARGARITA VASQUEZ PAREDES': 'Stephany Salazar',
+          'EMMANUEL ALEJANDRO LAVIN GUERRA': 'Enmanuel Lavin',
+          'EMMANUEL ALEJANDRO LAVIN': 'Enmanuel Lavin',
+          'JHAIR GONZALES': 'Jhair Gonzales'
+        }
+        
+        // Buscar coincidencia exacta
+        if (mapeoAnalistas[nombreCompletoUpper]) {
+          console.log('✅ Coincidencia exacta:', mapeoAnalistas[nombreCompletoUpper])
+          return mapeoAnalistas[nombreCompletoUpper]
+        }
+        
+        // Buscar coincidencia parcial por nombre y apellido paterno
+        for (const [nombreCompletoBD, analista] of Object.entries(mapeoAnalistas)) {
+          const partesBD = nombreCompletoBD.split(' ')
+          const partesUsuario = nombreCompletoUpper.split(' ')
+          
+          // Comparar primer nombre y primer apellido
+          if (partesBD.length >= 2 && partesUsuario.length >= 2) {
+            if (partesBD[0] === partesUsuario[0] && partesBD[1] === partesUsuario[1]) {
+              console.log('✅ Coincidencia parcial:', analista)
+              return analista
+            }
+          }
+        }
+        
+        console.log('⚠️ No se encontró coincidencia')
+        return ''
+      }
+
       setFormData(prev => ({
         ...prev,
         // Paso 1: Datos Generales
+        proveedor: 'PARTNER', // Siempre PARTNER por defecto
+        analistaCalidad: usuario?.nombre || '', // Mostrar nombre completo del monitor
         idInteraccion: llamada.ID_Largo || '',
         telefono: llamada.Numero || '',
         fechaLlamada: formatearFecha(llamada.Fecha),
@@ -196,6 +244,8 @@ function EncuestaMonitoreo({ llamada, onCerrar }) {
       }))
       
       console.log('✅ Autocompletado realizado con datos:', {
+        proveedor: 'PARTNER',
+        analistaCalidad: usuario?.nombre || '',
         idInteraccion: llamada.ID_Largo || '',
         telefono: llamada.Numero || '',
         fechaLlamada: formatearFecha(llamada.Fecha),
@@ -211,7 +261,7 @@ function EncuestaMonitoreo({ llamada, onCerrar }) {
     } else {
       console.log('⚠️ No hay llamada disponible para autocompletar')
     }
-  }, [llamada])
+  }, [llamada, usuario])
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
@@ -298,37 +348,77 @@ function EncuestaMonitoreo({ llamada, onCerrar }) {
         <div className="form-group">
           <label>Seleccione Proveedor *</label>
           <div className="radio-group">
-            {['ACC', 'CANTEC', 'PARTNER', 'PABELPE', 'ORVILACA', 'RECUPERA', 'GNP', 'BRM'].map(proveedor => (
-              <label key={proveedor} className="radio-option">
-                <input
-                  type="radio"
-                  name="proveedor"
-                  value={proveedor}
-                  checked={formData.proveedor === proveedor}
-                  onChange={handleInputChange}
-                />
-                <span>{proveedor}</span>
-              </label>
-            ))}
+            <label className="radio-option">
+              <input
+                type="radio"
+                name="proveedor"
+                value="PARTNER"
+                checked={formData.proveedor === 'PARTNER'}
+                onChange={handleInputChange}
+              />
+              <span>PARTNER</span>
+            </label>
+            <label className="radio-option">
+              <input
+                type="radio"
+                name="proveedor"
+                value="other"
+                checked={formData.proveedor !== 'PARTNER'}
+                onChange={() => {
+                  setMostrarOtrosProveedores(true)
+                }}
+              />
+              <span>+ Proveedores</span>
+            </label>
           </div>
         </div>
 
+        {/* Popup de Proveedores */}
+        {mostrarOtrosProveedores && (
+          <div className="proveedores-popup-overlay" onClick={() => setMostrarOtrosProveedores(false)}>
+            <div className="proveedores-popup-container" onClick={(e) => e.stopPropagation()}>
+              <div className="proveedores-popup-header">
+                <h3>Seleccione un Proveedor</h3>
+                <button className="proveedores-popup-cerrar" onClick={() => setMostrarOtrosProveedores(false)}>
+                  <Icon icon="mdi:close" />
+                </button>
+              </div>
+              <div className="proveedores-popup-content">
+                {['ACC', 'CANTEC', 'PABELPE', 'ORVILACA', 'RECUPERA', 'GNP', 'BRM'].map(proveedor => (
+                  <label key={proveedor} className="proveedores-popup-option">
+                    <input
+                      type="radio"
+                      name="proveedor"
+                      value={proveedor}
+                      checked={formData.proveedor === proveedor}
+                      onChange={(e) => {
+                        handleInputChange(e)
+                        setMostrarOtrosProveedores(false)
+                      }}
+                    />
+                    <span>{proveedor}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="form-group">
           <label>Analista de Calidad *</label>
-          <div className="radio-group">
-            {['Jhair Gonzales', 'Romina Herrera', 'Evelyn villa', 'Stephany Salazar', 'Jean Paul Aguilar', 'Enmanuel Lavin'].map(analista => (
-              <label key={analista} className="radio-option">
-                <input
-                  type="radio"
-                  name="analistaCalidad"
-                  value={analista}
-                  checked={formData.analistaCalidad === analista}
-                  onChange={handleInputChange}
-                />
-                <span>{analista}</span>
-              </label>
-            ))}
-          </div>
+          <input
+            type="text"
+            name="analistaCalidad"
+            value={formData.analistaCalidad}
+            readOnly
+            style={{ 
+              padding: '10px 12px',
+              border: '1px solid #ddd',
+              borderRadius: '6px',
+              backgroundColor: '#f9f9f9',
+              cursor: 'not-allowed'
+            }}
+          />
         </div>
 
         <div className="form-group">
@@ -386,7 +476,7 @@ function EncuestaMonitoreo({ llamada, onCerrar }) {
           />
         </div>
 
-        <div className="form-group">
+        <div className="form-group" style={{ marginTop: '-21px' }}>
           <label>Nombre del Asesor (APELLIDOS Y NOMBRES MAYUSCULA SIN TILDE) *</label>
           <input
             type="text"
@@ -394,7 +484,9 @@ function EncuestaMonitoreo({ llamada, onCerrar }) {
             value={formData.nombreAsesor}
             onChange={handleInputChange}
             placeholder="APELLIDOS Y NOMBRES"
-            style={{ textTransform: 'uppercase' }}
+            style={{ 
+              textTransform: 'uppercase'
+            }}
           />
         </div>
 
@@ -419,7 +511,7 @@ function EncuestaMonitoreo({ llamada, onCerrar }) {
       <div className="form-grid">
         <div className="form-group">
           <label>Tipo de Gestión *</label>
-          <div className="radio-group">
+          <div className="radio-group radio-group-grid">
             {['INBOUND', 'OUTBOUND', 'INBOUND VENTAS'].map(tipo => (
               <label key={tipo} className="radio-option">
                 <input
@@ -438,7 +530,7 @@ function EncuestaMonitoreo({ llamada, onCerrar }) {
         {formData.tipoGestion === 'OUTBOUND' && (
           <div className="form-group">
             <label>CAMPAÑAS OUTBOUND *</label>
-            <div className="radio-group">
+            <div className="radio-group radio-group-grid">
               {['RENOVACIÓN', 'PORTABILIDAD - LINEA NUEVA', 'MIGRACIÓN', 'PORTABILIDAD PPA', 'UPGRADE'].map(campana => (
                 <label key={campana} className="radio-option">
                   <input
@@ -457,7 +549,7 @@ function EncuestaMonitoreo({ llamada, onCerrar }) {
 
         <div className="form-group">
           <label>Tipo de Monitoreo *</label>
-          <div className="radio-group">
+          <div className="radio-group radio-group-grid">
             {['Aleatorio', 'Auditoría'].map(tipo => (
               <label key={tipo} className="radio-option">
                 <input
@@ -732,134 +824,161 @@ function EncuestaMonitoreo({ llamada, onCerrar }) {
     <div className="paso-contenido">
       <h3><Icon icon="mdi:flag-checkered" style={{marginRight: '8px'}} />Cierre y Observaciones</h3>
       
-      <div className="form-grid">
-        <div className="form-group full-width">
-          <label>DETALLAR LAS NOVEDADES CRÍTICAS PRESENTADAS EN LA LLAMADA *</label>
-          <textarea
-            name="novedadesCriticas"
-            value={formData.novedadesCriticas}
-            onChange={handleInputChange}
-            placeholder="Detalle las novedades críticas..."
-            rows="4"
-          />
-        </div>
+      {/* Menú de pestañas */}
+      <div className="pestañas-menu">
+        <button 
+          className={`pestaña-btn ${pestañaActivaPaso7 === 'cierre' ? 'activa' : ''}`}
+          onClick={() => setPestañaActivaPaso7('cierre')}
+        >
+          <Icon icon="mdi:clipboard-text" style={{marginRight: '8px'}} />
+          Cierre y Observaciones
+        </button>
+        <button 
+          className={`pestaña-btn ${pestañaActivaPaso7 === 'orden' ? 'activa' : ''}`}
+          onClick={() => setPestañaActivaPaso7('orden')}
+        >
+          <Icon icon="mdi:file-document-edit" style={{marginRight: '8px'}} />
+          Generación de Orden
+        </button>
+      </div>
 
-        <div className="form-group">
-          <label>Concretó la venta en la llamada *</label>
-          <div className="radio-group">
-            {['SI', 'NO', 'NO APLICA'].map(opcion => (
-              <label key={opcion} className="radio-option">
-                <input
-                  type="radio"
-                  name="concretoVenta"
-                  value={opcion}
-                  checked={formData.concretoVenta === opcion}
-                  onChange={handleInputChange}
-                />
-                <span>{opcion}</span>
-              </label>
-            ))}
-          </div>
-        </div>
-
-        <div className="form-group full-width">
-          <h4>¿SE GENERÓ LA ORDEN?</h4>
-          <div className="cuadricula-evaluacion">
-            <div className="cuadricula-header">
-              <div className="col-item">Item</div>
-              <div className="col-si">SI</div>
-              <div className="col-no">NO</div>
-              <div className="col-na">NO APLICA</div>
+      {/* Contenido de las pestañas */}
+      <div className="pestaña-contenido">
+        {pestañaActivaPaso7 === 'cierre' && (
+          <div className="form-grid">
+            <div className="form-group full-width">
+              <label>DETALLAR LAS NOVEDADES CRÍTICAS PRESENTADAS EN LA LLAMADA *</label>
+              <textarea
+                name="novedadesCriticas"
+                value={formData.novedadesCriticas}
+                onChange={handleInputChange}
+                placeholder="Detalle las novedades críticas..."
+                rows="4"
+              />
             </div>
-            {[
-              { key: 'generoOrden', label: '¿SE GENERÓ LA ORDEN?' },
-              { key: 'instaloServicio', label: 'SE INSTALÓ EL SERVICIO' },
-              { key: 'entregoChipEquipo', label: 'SE ENTREGÓ CHIP Y EQUIPO' },
-              { key: 'entregoEquipo', label: 'SE ENTREGÓ EQUIPO' }
-            ].map(item => (
-              <div key={item.key} className="cuadricula-fila">
-                <div className="col-item">{item.label}</div>
-                <div className="col-si">
-                  <input
-                    type="radio"
-                    name={`generoOrden_${item.key}`}
-                    checked={formData.generoOrden?.[item.key] === 'SI'}
-                    onChange={() => handleRadioChange('generoOrden', item.key, 'SI')}
-                  />
-                </div>
-                <div className="col-no">
-                  <input
-                    type="radio"
-                    name={`generoOrden_${item.key}`}
-                    checked={formData.generoOrden?.[item.key] === 'NO'}
-                    onChange={() => handleRadioChange('generoOrden', item.key, 'NO')}
-                  />
-                </div>
-                <div className="col-na">
-                  <input
-                    type="radio"
-                    name={`generoOrden_${item.key}`}
-                    checked={formData.generoOrden?.[item.key] === 'NA'}
-                    onChange={() => handleRadioChange('generoOrden', item.key, 'NA')}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
 
-        {formData.concretoVenta === 'NO' && (
-          <div className="form-group full-width">
-            <label>Porque no se concretó la venta?</label>
-            <textarea
-              name="porqueNoConcreto"
-              value={formData.porqueNoConcreto}
-              onChange={handleInputChange}
-              placeholder="Explique por qué no se concretó la venta..."
-              rows="3"
-            />
+            <div className="form-group">
+              <label>Concretó la venta en la llamada *</label>
+              <div className="radio-group radio-group-grid">
+                {['SI', 'NO', 'NO APLICA'].map(opcion => (
+                  <label key={opcion} className="radio-option">
+                    <input
+                      type="radio"
+                      name="concretoVenta"
+                      value={opcion}
+                      checked={formData.concretoVenta === opcion}
+                      onChange={handleInputChange}
+                    />
+                    <span>{opcion}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {formData.concretoVenta === 'NO' && (
+              <div className="form-group full-width">
+                <label>Porque no se concretó la venta?</label>
+                <textarea
+                  name="porqueNoConcreto"
+                  value={formData.porqueNoConcreto}
+                  onChange={handleInputChange}
+                  placeholder="Explique por qué no se concretó la venta..."
+                  rows="3"
+                />
+              </div>
+            )}
+
+            <div className="form-group">
+              <label>AGREGAR EL CORREO DEL SUPERVISOR *</label>
+              <input
+                type="email"
+                name="correoSupervisor"
+                value={formData.correoSupervisor}
+                onChange={handleInputChange}
+                placeholder="supervisor@claro.com"
+              />
+            </div>
+
+            <div className="form-group">
+              <label>AGREGAR EL CORREO DEL ANALISTA Y CAPACITACIÓN *</label>
+              <input
+                type="email"
+                name="correoAnalistaCapacitacion"
+                value={formData.correoAnalistaCapacitacion}
+                onChange={handleInputChange}
+                placeholder="analista@claro.com"
+              />
+            </div>
+
+            <div className="form-group">
+              <label>APLICA RETROALIMENTACIÓN *</label>
+              <div className="radio-group radio-group-grid">
+                {['SI', 'NO'].map(opcion => (
+                  <label key={opcion} className="radio-option">
+                    <input
+                      type="radio"
+                      name="aplicaRetroalimentacion"
+                      value={opcion}
+                      checked={formData.aplicaRetroalimentacion === opcion}
+                      onChange={handleInputChange}
+                    />
+                    <span>{opcion}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
           </div>
         )}
 
-        <div className="form-group">
-          <label>AGREGAR EL CORREO DEL SUPERVISOR *</label>
-          <input
-            type="email"
-            name="correoSupervisor"
-            value={formData.correoSupervisor}
-            onChange={handleInputChange}
-            placeholder="supervisor@claro.com"
-          />
-        </div>
-
-        <div className="form-group">
-          <label>AGREGAR EL CORREO DEL ANALISTA Y CAPACITACIÓN *</label>
-          <input
-            type="email"
-            name="correoAnalistaCapacitacion"
-            value={formData.correoAnalistaCapacitacion}
-            onChange={handleInputChange}
-            placeholder="analista@claro.com"
-          />
-        </div>
-
-        <div className="form-group">
-          <label>APLICA RETROALIMENTACIÓN *</label>
-          <div className="radio-group">
-            {['SI', 'NO'].map(opcion => (
-              <label key={opcion} className="radio-option">
-                <input
-                  type="radio"
-                  name="aplicaRetroalimentacion"
-                  value={opcion}
-                  checked={formData.aplicaRetroalimentacion === opcion}
-                  onChange={handleInputChange}
-                />
-                <span>{opcion}</span>
-              </label>
-            ))}
+        {pestañaActivaPaso7 === 'orden' && (
+          <div className="form-grid">
+            <div className="form-group full-width">
+              <h4>¿SE GENERÓ LA ORDEN?</h4>
+              <div className="cuadricula-evaluacion">
+                <div className="cuadricula-header">
+                  <div className="col-item">Item</div>
+                  <div className="col-si">SI</div>
+                  <div className="col-no">NO</div>
+                  <div className="col-na">NO APLICA</div>
+                </div>
+                {[
+                  { key: 'generoOrden', label: '¿SE GENERÓ LA ORDEN?' },
+                  { key: 'instaloServicio', label: 'SE INSTALÓ EL SERVICIO' },
+                  { key: 'entregoChipEquipo', label: 'SE ENTREGÓ CHIP Y EQUIPO' },
+                  { key: 'entregoEquipo', label: 'SE ENTREGÓ EQUIPO' }
+                ].map(item => (
+                  <div key={item.key} className="cuadricula-fila">
+                    <div className="col-item">{item.label}</div>
+                    <div className="col-si">
+                      <input
+                        type="radio"
+                        name={`generoOrden_${item.key}`}
+                        checked={formData.generoOrden?.[item.key] === 'SI'}
+                        onChange={() => handleRadioChange('generoOrden', item.key, 'SI')}
+                      />
+                    </div>
+                    <div className="col-no">
+                      <input
+                        type="radio"
+                        name={`generoOrden_${item.key}`}
+                        checked={formData.generoOrden?.[item.key] === 'NO'}
+                        onChange={() => handleRadioChange('generoOrden', item.key, 'NO')}
+                      />
+                    </div>
+                    <div className="col-na">
+                      <input
+                        type="radio"
+                        name={`generoOrden_${item.key}`}
+                        checked={formData.generoOrden?.[item.key] === 'NA'}
+                        onChange={() => handleRadioChange('generoOrden', item.key, 'NA')}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   )
