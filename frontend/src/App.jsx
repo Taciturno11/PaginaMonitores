@@ -47,6 +47,9 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [opciones, setOpciones] = useState({ campanas: [], colas: [] });
+  const [agentes, setAgentes] = useState([]);
+  const [agentesFiltrados, setAgentesFiltrados] = useState([]);
+  const [mostrarSugerenciasAgente, setMostrarSugerenciasAgente] = useState(false);
   
   // Estados para el monitoreo
   const [contadorInicial, setContadorInicial] = useState(null);
@@ -126,13 +129,97 @@ function App() {
     }
   }, [usuario, API_URL]);
 
-  // Cargar opciones de filtros al iniciar
+  // Cargar agentes filtrados según campaña y cola seleccionadas
   useEffect(() => {
-    fetch(`${API_URL}/api/opciones-filtros`)
-      .then(res => res.json())
-      .then(data => setOpciones(data))
-      .catch(err => console.error('Error al cargar opciones:', err));
+    const cargarAgentes = async () => {
+      try {
+        // Construir URL con filtros
+        let url = `${API_URL}/api/agentes`;
+        const params = [];
+        
+        if (filtros.campana) {
+          params.push(`campana=${encodeURIComponent(filtros.campana)}`);
+        }
+        if (filtros.cola) {
+          params.push(`cola=${encodeURIComponent(filtros.cola)}`);
+        }
+        
+        if (params.length > 0) {
+          url += `?${params.join('&')}`;
+        }
+        
+        const res = await fetch(url);
+        const data = await res.json();
+        if (res.ok && data.agentes) {
+          setAgentes(data.agentes);
+        }
+      } catch (err) {
+        console.error('Error al cargar agentes:', err);
+      }
+    };
+    
+    cargarAgentes();
+  }, [filtros.campana, filtros.cola, API_URL]);
+  
+  // Cargar campañas disponibles al iniciar
+  useEffect(() => {
+    const cargarCampanas = async () => {
+      try {
+        const res = await fetch(`${API_URL}/api/opciones-filtros`);
+        const data = await res.json();
+        if (res.ok && data.campanas) {
+          setOpciones(prev => ({
+            ...prev,
+            campanas: data.campanas
+          }));
+        }
+      } catch (err) {
+        console.error('Error al cargar campañas:', err);
+      }
+    };
+    
+    cargarCampanas();
   }, [API_URL]);
+  
+  // Cargar y actualizar colas según campaña seleccionada y usuario
+  useEffect(() => {
+    const cargarColas = async () => {
+      if (filtros.campana) {
+        // Caso 1: Hay campaña seleccionada → cargar SOLO las colas de esa campaña específica
+        try {
+          const res = await fetch(`${API_URL}/api/colas-por-campana?campana=${encodeURIComponent(filtros.campana)}`);
+          const data = await res.json();
+          
+          if (res.ok && data.colas) {
+            setOpciones(prev => ({
+              ...prev,
+              colas: data.colas
+            }));
+          }
+        } catch (err) {
+          console.error('Error al cargar colas por campaña:', err);
+        }
+      } else if (usuario?.dni) {
+        // Caso 2: No hay campaña seleccionada pero hay usuario → cargar colas de TODAS sus campañas asignadas
+        try {
+          const url = `${API_URL}/api/opciones-filtros?dniUsuario=${usuario.dni}&rolUsuario=${usuario.rol || ''}`;
+          const res = await fetch(url);
+          const data = await res.json();
+          
+          if (res.ok && data.colas) {
+            setOpciones(prev => ({
+              ...prev,
+              colas: data.colas
+            }));
+          }
+        } catch (err) {
+          console.error('Error al cargar colas:', err);
+        }
+      }
+    };
+    
+    cargarColas();
+  }, [filtros.campana, usuario?.dni, usuario?.rol, API_URL]);
 
   // Contador inicial (5, 4, 3, 2, 1)
   useEffect(() => {
@@ -170,10 +257,59 @@ function App() {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    
+    // Si cambia la campaña, limpiar filtros de cola y agente
+    if (name === 'campana') {
+      setFiltros(prev => ({
+        ...prev,
+        campana: value,
+        cola: '', // Limpiar cola al cambiar campaña
+        agente: '' // Limpiar agente al cambiar campaña
+      }));
+      setAgentesFiltrados([]);
+      setMostrarSugerenciasAgente(false);
+    } else if (name === 'cola') {
+      // Si cambia la cola, limpiar filtro de agente
+      setFiltros(prev => ({
+        ...prev,
+        cola: value,
+        agente: '' // Limpiar agente al cambiar cola
+      }));
+      setAgentesFiltrados([]);
+      setMostrarSugerenciasAgente(false);
+    } else if (name === 'agente') {
+      // Manejar autocompletado de agente
+      setFiltros(prev => ({
+        ...prev,
+        agente: value
+      }));
+      
+      // Filtrar agentes mientras se escribe
+      if (value.length > 0) {
+        const filtrados = agentes.filter(a => 
+          a.toLowerCase().includes(value.toLowerCase())
+        );
+        setAgentesFiltrados(filtrados);
+        setMostrarSugerenciasAgente(true);
+      } else {
+        setAgentesFiltrados([]);
+        setMostrarSugerenciasAgente(false);
+      }
+    } else {
+      setFiltros(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
+  };
+  
+  // Función para seleccionar un agente de las sugerencias
+  const seleccionarAgente = (agente) => {
     setFiltros(prev => ({
       ...prev,
-      [name]: value
+      agente: agente
     }));
+    setMostrarSugerenciasAgente(false);
   };
 
   const obtenerLlamadaAleatoria = async () => {
@@ -444,15 +580,50 @@ function App() {
               </select>
             </div>
 
-            <div className="filtro-item">
+            <div className="filtro-item" style={{ position: 'relative' }}>
               <label>Agente:</label>
               <input 
                 type="text" 
                 name="agente"
                 value={filtros.agente}
                 onChange={handleInputChange}
+                onFocus={() => filtros.agente.length > 0 && setMostrarSugerenciasAgente(true)}
+                onBlur={() => setTimeout(() => setMostrarSugerenciasAgente(false), 200)}
                 placeholder="Buscar por nombre"
               />
+              {mostrarSugerenciasAgente && agentesFiltrados.length > 0 && (
+                <div style={{
+                  position: 'absolute',
+                  top: '100%',
+                  left: 0,
+                  right: 0,
+                  backgroundColor: 'white',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '8px',
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+                  maxHeight: '200px',
+                  overflowY: 'auto',
+                  zIndex: 1000,
+                  marginTop: '4px'
+                }}>
+                  {agentesFiltrados.map((agente, index) => (
+                    <div
+                      key={index}
+                      onClick={() => seleccionarAgente(agente)}
+                      style={{
+                        padding: '10px 12px',
+                        cursor: 'pointer',
+                        borderBottom: '1px solid #f3f4f6',
+                        transition: 'background-color 0.2s'
+                      }}
+                      onMouseEnter={(e) => e.target.style.backgroundColor = '#f3f4f6'}
+                      onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}
+                    >
+                      {agente}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="filtro-item">

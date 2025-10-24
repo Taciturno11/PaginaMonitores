@@ -246,7 +246,7 @@ app.post('/api/llamada-aleatoria', async (req, res) => {
     }
     
     if (agente) {
-      query += ` AND NombreCompletoAgente LIKE @agente`;
+      query += ` AND Usuario_Llamada_Origen LIKE @agente`;
       params.push({ name: 'agente', type: sql.NVarChar, value: `%${agente}%` });
     }
     
@@ -340,28 +340,174 @@ app.post('/api/llamada-aleatoria', async (req, res) => {
   }
 });
 
+// Endpoint para obtener colas por campaña
+app.get('/api/colas-por-campana', async (req, res) => {
+  try {
+    const { campana } = req.query;
+    
+    if (!campana) {
+      return res.status(400).json({ error: 'Campana es requerida' });
+    }
+    
+    const pool = await sql.connect(dbConfig);
+    
+    // Obtener CampañaID según el nombre
+    const campanaID = campañasMap[campana];
+    
+    if (!campanaID) {
+      return res.status(400).json({ error: 'Campaña no encontrada' });
+    }
+    
+    // Usar PRI_Colas para obtener las colas que realmente pertenecen a esta campaña
+    const colasResult = await pool.request()
+      .input('campanaID', sql.Int, campanaID)
+      .query(`
+        SELECT DISTINCT pc.NombreCola AS Cola
+        FROM [dbo].[PRI_Colas] pc
+        WHERE pc.CampañaID = @campanaID
+          AND pc.NombreCola IS NOT NULL 
+          AND pc.NombreCola != ''
+        ORDER BY pc.NombreCola
+      `);
+    
+    res.json({
+      campana,
+      campanaID,
+      colas: colasResult.recordset.map(r => r.Cola)
+    });
+  } catch (error) {
+    console.error('Error al obtener colas por campaña:', error);
+    res.status(500).json({ error: 'Error al obtener colas', detalle: error.message });
+  }
+});
+
+// Endpoint para obtener lista de agentes disponibles (filtrados por campaña y/o cola)
+app.get('/api/agentes', async (req, res) => {
+  try {
+    const { campana, cola } = req.query;
+    const pool = await sql.connect(dbConfig);
+    
+    let query = `
+      SELECT DISTINCT Usuario_Llamada_Origen
+      FROM [Partner].[dbo].[Reporte_Llamadas_Detalle]
+      WHERE Usuario_Llamada_Origen IS NOT NULL 
+        AND Usuario_Llamada_Origen != ''
+        AND ID_Largo IS NOT NULL
+    `;
+    
+    const params = [];
+    
+    // Si se especifica una campaña, filtrar por ella
+    if (campana) {
+      query += ` AND Campaña_Agente = @campana`;
+      params.push({ name: 'campana', type: sql.NVarChar, value: campana });
+    }
+    
+    // Si se especifica una cola, filtrar por ella
+    if (cola) {
+      query += ` AND Cola = @cola`;
+      params.push({ name: 'cola', type: sql.NVarChar, value: cola });
+    }
+    
+    query += ` ORDER BY Usuario_Llamada_Origen`;
+    
+    const request = pool.request();
+    params.forEach(param => {
+      request.input(param.name, param.type, param.value);
+    });
+    
+    const result = await request.query(query);
+    
+    res.json({
+      agentes: result.recordset.map(r => r.Usuario_Llamada_Origen)
+    });
+  } catch (error) {
+    console.error('Error al obtener agentes:', error);
+    res.status(500).json({ error: 'Error al obtener agentes', detalle: error.message });
+  }
+});
+
 // Endpoint para obtener opciones de filtros (campañas, colas disponibles)
 app.get('/api/opciones-filtros', async (req, res) => {
   try {
+    const { campana, dniUsuario, rolUsuario } = req.query;
     const pool = await sql.connect(dbConfig);
     
     const campanas = await pool.request().query(`
       SELECT DISTINCT Campaña_Agente 
       FROM [Partner].[dbo].[Reporte_Llamadas_Detalle] 
       WHERE Campaña_Agente IS NOT NULL 
+        AND ID_Largo IS NOT NULL
       ORDER BY Campaña_Agente
     `);
     
-    const colas = await pool.request().query(`
-      SELECT DISTINCT Cola 
-      FROM [Partner].[dbo].[Reporte_Llamadas_Detalle] 
-      WHERE Cola IS NOT NULL 
-      ORDER BY Cola
-    `);
+    let colas = [];
+    
+    // Si se especifica una campaña, obtener solo las colas de esa campaña desde PRI_Colas
+    if (campana) {
+      const campanaID = campañasMap[campana];
+      if (campanaID) {
+        const colasResult = await pool.request()
+          .input('campanaID', sql.Int, campanaID)
+          .query(`
+            SELECT DISTINCT pc.NombreCola AS Cola
+            FROM [dbo].[PRI_Colas] pc
+            WHERE pc.CampañaID = @campanaID
+              AND pc.NombreCola IS NOT NULL 
+              AND pc.NombreCola != ''
+            ORDER BY pc.NombreCola
+          `);
+        
+        colas = colasResult.recordset.map(r => r.Cola);
+      }
+    } else if (dniUsuario && campañasAsignadas[dniUsuario]) {
+      // Si el usuario tiene campañas asignadas, obtener colas de todas sus campañas desde PRI_Colas
+      const campanasUsuario = campañasAsignadas[dniUsuario];
+      
+      // Convertir nombres de campañas a IDs
+      const campanaIDs = campanasUsuario
+        .map(camp => campañasMap[camp])
+        .filter(id => id !== undefined);
+      
+      if (campanaIDs.length > 0) {
+        // Construir IN clause
+        const placeholders = campanaIDs.map((_, index) => `@campanaID${index}`).join(', ');
+        const colasResult = await pool.request();
+        
+        campanaIDs.forEach((id, index) => {
+          colasResult.input(`campanaID${index}`, sql.Int, id);
+        });
+        
+        const result = await colasResult.query(`
+          SELECT DISTINCT pc.NombreCola AS Cola
+          FROM [dbo].[PRI_Colas] pc
+          WHERE pc.CampañaID IN (${placeholders})
+            AND pc.NombreCola IS NOT NULL 
+            AND pc.NombreCola != ''
+          ORDER BY pc.NombreCola
+        `);
+        
+        colas = result.recordset.map(r => r.Cola);
+      }
+    } else if (rolUsuario === 'jefa') {
+      // Si es la jefa sin campañas asignadas, mostrar TODAS las colas desde PRI_Colas
+      const colasResult = await pool.request().query(`
+        SELECT DISTINCT pc.NombreCola AS Cola
+        FROM [dbo].[PRI_Colas] pc
+        WHERE pc.NombreCola IS NOT NULL 
+          AND pc.NombreCola != ''
+        ORDER BY pc.NombreCola
+      `);
+      
+      colas = colasResult.recordset.map(r => r.Cola);
+    } else {
+      // Si no hay filtro ni campañas asignadas y no es jefa, NO mostrar ninguna cola (array vacío)
+      colas = [];
+    }
     
     res.json({
       campanas: campanas.recordset.map(r => r['Campaña_Agente']),
-      colas: colas.recordset.map(r => r.Cola)
+      colas: colas
     });
   } catch (error) {
     console.error('Error al obtener opciones:', error);
@@ -769,6 +915,34 @@ const campañasAsignadas = {
   '48802135': ['Migracion'],                  // Jeanpaul Aguilar Perez
   '76081717': ['Portabilidad Pospago'],       // Yadhira Margarita Vasquez P.
   '007332055': ['Portabilidad Prepago']      // Emmanuel Alejandro Lavin G.
+};
+
+// Mapeo de nombres de campañas a IDs (según tabla PRI.Campanias)
+const campañasMap = {
+  'Migracion': 1,
+  'Portabilidad Pospago': 2,
+  'Estructura': 3,
+  'Unificado': 4,
+  'Analistas': 5,
+  'Auditoria': 6,
+  'Back Ofrecimento': 7,
+  'Back Seguimiento': 8,
+  'Backoffice': 9,
+  'Calidad': 10,
+  'Capacitacion': 11,
+  'Back Transferencias': 12,
+  'Clientes Especiales': 13,
+  'Crosselling': 14,
+  'Hogar': 15,
+  'Live Chat': 16,
+  'Prepago Digital': 17,
+  'Regularizacion': 18,
+  'Renovacion': 19,
+  'NPS FCR': 20,
+  'Redes Sociales': 21,
+  'Rellamado': 22,
+  'Retenciones': 23,
+  'Portabilidad Prepago': 24
 };
 
 // Endpoint para obtener lista de monitores
