@@ -59,6 +59,7 @@ function App() {
   const [inicioMonitoreo, setInicioMonitoreo] = useState(null);
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [mostrarEncuesta, setMostrarEncuesta] = useState(false);
+  const [audioCargando, setAudioCargando] = useState(true);
 
   const API_URL = import.meta.env.VITE_API_URL;
   const [socket, setSocket] = useState(null);
@@ -128,6 +129,17 @@ function App() {
       };
     }
   }, [usuario, API_URL]);
+
+  // Animación de carga del audio (3 segundos)
+  useEffect(() => {
+    if (llamada) {
+      setAudioCargando(true);
+      const timer = setTimeout(() => {
+        setAudioCargando(false);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [llamada]);
 
   // Cargar agentes filtrados según campaña y cola seleccionadas
   useEffect(() => {
@@ -738,22 +750,51 @@ function App() {
                     <Icon icon="mdi:play-circle" style={{marginRight: '8px'}} />
                     Audio de la Llamada
                   </h3>
-                  <audio 
-                    controls 
-                    preload="none" 
-                    className="audio-player"
-                    onError={(e) => {
-                      console.error('Error al cargar audio:', e);
-                      console.error('URL que falló:', e.target.src);
-                    }}
-                    onLoadStart={() => console.log('Iniciando carga del audio...')}
-                    onLoadedData={() => console.log('Audio cargado correctamente')}
-                    onCanPlay={() => console.log('Audio listo para reproducir')}
-                  >
-                    <source src={`${API_URL}/audio/test-audio-1-converted.mp3`} type="audio/mpeg" />
-                    <source src={`${API_URL}/audio/test-audio-2-converted.mp3`} type="audio/mpeg" />
-                    Tu navegador no soporta el elemento de audio.
-                  </audio>
+                  {audioCargando ? (
+                    <div style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      padding: '40px',
+                      gap: '20px'
+                    }}>
+                      <div style={{
+                        width: '50px',
+                        height: '50px',
+                        border: '4px solid #f3f3f3',
+                        borderTop: '4px solid #4caf50',
+                        borderRadius: '50%',
+                        animation: 'spin 1s linear infinite'
+                      }}></div>
+                      <div style={{ color: '#666', fontSize: '14px' }}>
+                        Cargando audio...
+                      </div>
+                    </div>
+                  ) : (
+                    <audio 
+                      controls 
+                      preload="none" 
+                      className="audio-player"
+                      onError={(e) => {
+                        console.error('Error al cargar audio:', e);
+                        console.error('URL que falló:', e.target.src);
+                      }}
+                      onLoadStart={() => console.log('Iniciando carga del audio...')}
+                      onLoadedData={() => console.log('Audio cargado correctamente')}
+                      onCanPlay={() => console.log('Audio listo para reproducir')}
+                    >
+                      {llamada.Campaña_Agente === 'Unificado' ? (
+                        <source src={`${API_URL}/audio/test-audio-33-converted.mp3`} type="audio/mpeg" />
+                      ) : (
+                        <>
+                          <source src={`${API_URL}/audio/test-audio-1-converted.mp3`} type="audio/mpeg" />
+                          <source src={`${API_URL}/audio/test-audio-2-converted.mp3`} type="audio/mpeg" />
+                        </>
+                      )}
+                      Tu navegador no soporta el elemento de audio.
+                    </audio>
+                  )}
                 </div>
               
                 <div className="detalle-lineas">

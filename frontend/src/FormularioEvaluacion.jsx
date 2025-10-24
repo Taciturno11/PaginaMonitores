@@ -11,39 +11,50 @@ const FormularioEvaluacion = ({ llamada, tiempoMonitoreo, onGuardar, onCancelar 
 
   // Autocompletar evaluación basado en Estado IPC
   useEffect(() => {
-    if (llamada && llamada.Tipificacion_Estado_IPC) {
-      const estadoIPC = llamada.Tipificacion_Estado_IPC;
-      
-      // Estados que son VENTAS
-      const estadosVentas = [
-        'Agendado',
-        'Aceptacion No Efectiva',
-        'Llamada Saliente',
-        'No Acepta',
-        'Aceptados',
-        'No Desea Recibir Llamada',
-        'No Contactado',
-        'Agente Cierra Sin Tipificar',
-        'Contacto AGL'
-      ];
-      
-      // Si el estado es uno de VENTAS
-      if (estadosVentas.includes(estadoIPC)) {
-        setTipoServicio('VENTAS');
-        
-        // Si es "Aceptados" = venta exitosa (SI)
-        if (estadoIPC === 'Aceptados') {
-          setFueVenta('SI');
-          setEvaluacionCompletada(true);
-        } else {
-          // Cualquier otro estado = no venta (NO)
-          setFueVenta('NO');
-        }
-      } else {
-        // Si no es ningún estado de VENTAS, es ATC
+    if (llamada) {
+      // Si la campaña es "Unificado", siempre es ATC satisfactoria
+      if (llamada.Campaña_Agente === 'Unificado') {
         setTipoServicio('ATC');
-        setFueSatisfactoriaATC('SI'); // Por defecto satisfactoria
+        setFueSatisfactoriaATC('SI');
         setEvaluacionCompletada(true);
+        return;
+      }
+      
+      // Lógica original para otras campañas
+      if (llamada.Tipificacion_Estado_IPC) {
+        const estadoIPC = llamada.Tipificacion_Estado_IPC;
+        
+        // Estados que son VENTAS
+        const estadosVentas = [
+          'Agendado',
+          'Aceptacion No Efectiva',
+          'Llamada Saliente',
+          'No Acepta',
+          'Aceptados',
+          'No Desea Recibir Llamada',
+          'No Contactado',
+          'Agente Cierra Sin Tipificar',
+          'Contacto AGL'
+        ];
+        
+        // Si el estado es uno de VENTAS
+        if (estadosVentas.includes(estadoIPC)) {
+          setTipoServicio('VENTAS');
+          
+          // Si es "Aceptados" = venta exitosa (SI)
+          if (estadoIPC === 'Aceptados') {
+            setFueVenta('SI');
+            setEvaluacionCompletada(true);
+          } else {
+            // Cualquier otro estado = no venta (NO)
+            setFueVenta('NO');
+          }
+        } else {
+          // Si no es ningún estado de VENTAS, es ATC
+          setTipoServicio('ATC');
+          setFueSatisfactoriaATC('SI'); // Por defecto satisfactoria
+          setEvaluacionCompletada(true);
+        }
       }
     }
   }, [llamada])

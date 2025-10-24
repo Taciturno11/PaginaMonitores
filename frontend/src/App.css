@@ -310,6 +310,15 @@ header p {
   }
 }
 
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
 .cronometro-activo {
   background: var(--primary-2ary-3);
   padding: 20px;

@@ -914,7 +914,9 @@ const campañasAsignadas = {
   '72853980': ['Crosselling', 'Renovacion'], // Evelyn Betzabeth Villa Aramburú
   '48802135': ['Migracion'],                  // Jeanpaul Aguilar Perez
   '76081717': ['Portabilidad Pospago'],       // Yadhira Margarita Vasquez P.
-  '007332055': ['Portabilidad Prepago']      // Emmanuel Alejandro Lavin G.
+  '007332055': ['Portabilidad Prepago'],     // Emmanuel Alejandro Lavin G.
+  '71418618': ['Unificado'],                  // Monitor ATC 1
+  '006987564': ['Unificado']                  // Monitor ATC 2
 };
 
 // Mapeo de nombres de campañas a IDs (según tabla PRI.Campanias)

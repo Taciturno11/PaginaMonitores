@@ -23,6 +23,7 @@ function EncuestaMonitoreo({ llamada, usuario, onCerrar }) {
     duracionLlamada: '',
     nombreAsesor: '',
     usuarioAsesor: '',
+    notaNPS: '', // Solo para campaña Unificado
     
     // Paso 2: Clasificación de Gestión
     tipoGestion: '',
@@ -226,6 +227,11 @@ function EncuestaMonitoreo({ llamada, usuario, onCerrar }) {
         return ''
       }
 
+      // Generar nota NPS aleatoria (1-10) solo para campaña Unificado
+      const notaNPS = llamada.Campaña_Agente === 'Unificado' 
+        ? Math.floor(Math.random() * 10) + 1 
+        : ''
+
       setFormData(prev => ({
         ...prev,
         // Paso 1: Datos Generales
@@ -238,6 +244,7 @@ function EncuestaMonitoreo({ llamada, usuario, onCerrar }) {
         duracionLlamada: formatearDuracion(llamada.Duracion),
         nombreAsesor: llamada.NombreCompletoAgente || '',
         usuarioAsesor: llamada.Usuario_Llamada_Origen || '',
+        notaNPS: notaNPS, // Nota NPS aleatoria para campaña Unificado
         
         // Paso 2: Clasificación de Gestión
         tipoGestion: determinarTipoGestion(llamada.Campaña_Agente),
@@ -537,6 +544,12 @@ function EncuestaMonitoreo({ llamada, usuario, onCerrar }) {
       formData.nombreAsesor,
       formData.usuarioAsesor
     ]
+    
+    // Validar notaNPS solo si la campaña es Unificado
+    if (llamada?.Campaña_Agente === 'Unificado') {
+      camposRequeridos.push(formData.notaNPS)
+    }
+    
     return camposRequeridos.every(campo => campo && campo !== '')
   }
 
@@ -1018,6 +1031,33 @@ function EncuestaMonitoreo({ llamada, usuario, onCerrar }) {
             placeholder="Usuario del asesor"
           />
         </div>
+
+        {/* Campo de Nota NPS solo para campaña Unificado */}
+        {llamada?.Campaña_Agente === 'Unificado' && (
+          <div className="form-group">
+            <label>Nota de NPS *</label>
+            <input
+              type="number"
+              name="notaNPS"
+              value={formData.notaNPS}
+              onChange={handleInputChange}
+              placeholder="Nota de NPS (1-10)"
+              min="1"
+              max="10"
+              readOnly
+              style={{ 
+                padding: '10px 12px',
+                border: '1px solid #ddd',
+                borderRadius: '6px',
+                backgroundColor: '#f9f9f9',
+                cursor: 'not-allowed',
+                fontWeight: 'bold',
+                fontSize: '16px',
+                color: '#4caf50'
+              }}
+            />
+          </div>
+        )}
       </div>
     </div>
   )
