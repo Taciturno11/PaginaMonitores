@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Icon } from '@iconify/react'
+import html2pdf from 'html2pdf.js'
 import './EncuestaMonitoreo.css'
 
 function EncuestaMonitoreo({ llamada, usuario, onCerrar }) {
@@ -9,6 +10,8 @@ function EncuestaMonitoreo({ llamada, usuario, onCerrar }) {
   const [pestañaActivaPaso5, setPestañaActivaPaso5] = useState('gestion')
   const [pestañaActivaPaso7, setPestañaActivaPaso7] = useState('cierre')
   const [mostrarOtrosProveedores, setMostrarOtrosProveedores] = useState(false)
+  const [errorValidacion, setErrorValidacion] = useState('')
+  const [mostrarResumen, setMostrarResumen] = useState(false)
   const [formData, setFormData] = useState({
     // Paso 1: Datos Generales
     proveedor: '',
@@ -276,6 +279,68 @@ function EncuestaMonitoreo({ llamada, usuario, onCerrar }) {
     console.log('📋 FormData actual:', formData)
   }, [formData])
 
+  // Auto-completar novedades críticas cuando se llega al módulo 7
+  useEffect(() => {
+    if (pasoActual === 7 && !formData.novedadesCriticas) {
+      const modulosConFallo = []
+      
+      // Verificar módulo 3 (PENC)
+      const modulos3 = [formData.pencSaluda, formData.pencEscucha, formData.pencFormulas]
+      let tieneNo3 = false
+      modulos3.forEach(modulo => {
+        if (modulo) {
+          Object.values(modulo).forEach(valor => {
+            if (valor === 'NO') tieneNo3 = true
+          })
+        }
+      })
+      if (tieneNo3) modulosConFallo.push('Módulo 3 - PENC (Protocolos y Buenas Prácticas)')
+      
+      // Verificar módulo 4 (PEC-UF)
+      const modulos4 = [formData.pecInformacion, formData.pecProceso, formData.pecActitud, formData.pecCalidad]
+      let tieneNo4 = false
+      modulos4.forEach(modulo => {
+        if (modulo) {
+          Object.values(modulo).forEach(valor => {
+            if (valor === 'NO') tieneNo4 = true
+          })
+        }
+      })
+      if (tieneNo4) modulosConFallo.push('Módulo 4 - PEC-UF (Precisión Errores Críticos Usuario Final)')
+      
+      // Verificar módulo 5 (PEC-NEG)
+      const modulos5 = [formData.pecGestionalComercial, formData.pecValidacionesCRM]
+      let tieneNo5 = false
+      modulos5.forEach(modulo => {
+        if (modulo) {
+          Object.values(modulo).forEach(valor => {
+            if (valor === 'NO') tieneNo5 = true
+          })
+        }
+      })
+      if (tieneNo5) modulosConFallo.push('Módulo 5 - PEC-NEG (Precisión Errores Críticos del Negocio)')
+      
+      // Verificar módulo 6 (PEC CUM)
+      const modulo6 = formData.pecManejoInfo
+      let tieneNo6 = false
+      if (modulo6) {
+        Object.values(modulo6).forEach(valor => {
+          if (valor === 'NO') tieneNo6 = true
+        })
+      }
+      if (tieneNo6) modulosConFallo.push('Módulo 6 - PEC CUM (Manejo de Información Confidencial)')
+      
+      // Si hay módulos con fallo, generar el texto
+      if (modulosConFallo.length > 0) {
+        const texto = modulosConFallo.map(modulo => `- ${modulo}: `).join('\n') + '\n\nPor favor detalle cada novedad encontrada.'
+        setFormData(prev => ({
+          ...prev,
+          novedadesCriticas: texto
+        }))
+      }
+    }
+  }, [pasoActual, formData.pencSaluda, formData.pencEscucha, formData.pencFormulas, formData.pecInformacion, formData.pecProceso, formData.pecActitud, formData.pecCalidad, formData.pecGestionalComercial, formData.pecValidacionesCRM, formData.pecManejoInfo, formData.novedadesCriticas])
+
   const handleRadioChange = (seccion, campo, valor) => {
     setFormData(prev => ({
       ...prev,
@@ -293,7 +358,277 @@ function EncuestaMonitoreo({ llamada, usuario, onCerrar }) {
     }))
   }
 
+  // Función para calcular la nota del módulo 3
+  const calcularNotaModulo3 = () => {
+    const modulos3 = [
+      formData.pencSaluda,
+      formData.pencEscucha,
+      formData.pencFormulas
+    ]
+    
+    let totalItems = 0
+    let cumplidos = 0
+    
+    modulos3.forEach(modulo => {
+      if (modulo) {
+        Object.values(modulo).forEach(valor => {
+          if (valor && valor !== '') {
+            totalItems++
+            if (valor === 'SI') {
+              cumplidos++
+            }
+          }
+        })
+      }
+    })
+    
+    if (totalItems === 0) return null
+    
+    const porcentaje = (cumplidos / totalItems) * 100
+    return {
+      porcentaje: Math.round(porcentaje),
+      cumplidos,
+      totalItems
+    }
+  }
+
+  // Función para calcular la nota del módulo 4 (con lógica especial: 1 NO = 0%)
+  const calcularNotaModulo4 = () => {
+    const modulos4 = [
+      formData.pecInformacion,
+      formData.pecProceso,
+      formData.pecActitud,
+      formData.pecCalidad
+    ]
+    
+    let totalItems = 0
+    let cumplidos = 0
+    let tieneNo = false
+    
+    modulos4.forEach(modulo => {
+      if (modulo) {
+        Object.values(modulo).forEach(valor => {
+          if (valor && valor !== '') {
+            totalItems++
+            if (valor === 'SI') {
+              cumplidos++
+            } else if (valor === 'NO') {
+              tieneNo = true
+            }
+          }
+        })
+      }
+    })
+    
+    if (totalItems === 0) return null
+    
+    // Si hay al menos un "NO", la nota es 0%
+    if (tieneNo) {
+      return {
+        porcentaje: 0,
+        cumplidos: 0,
+        totalItems
+      }
+    }
+    
+    const porcentaje = (cumplidos / totalItems) * 100
+    return {
+      porcentaje: Math.round(porcentaje),
+      cumplidos,
+      totalItems
+    }
+  }
+
+  // Función para calcular la nota del módulo 5 (con lógica especial: 1 NO = 0%)
+  const calcularNotaModulo5 = () => {
+    const modulos5 = [
+      formData.pecGestionalComercial,
+      formData.pecValidacionesCRM
+    ]
+    
+    let totalItems = 0
+    let cumplidos = 0
+    let tieneNo = false
+    
+    modulos5.forEach(modulo => {
+      if (modulo) {
+        Object.values(modulo).forEach(valor => {
+          if (valor && valor !== '') {
+            totalItems++
+            if (valor === 'SI') {
+              cumplidos++
+            } else if (valor === 'NO') {
+              tieneNo = true
+            }
+          }
+        })
+      }
+    })
+    
+    if (totalItems === 0) return null
+    
+    // Si hay al menos un "NO", la nota es 0%
+    if (tieneNo) {
+      return {
+        porcentaje: 0,
+        cumplidos: 0,
+        totalItems
+      }
+    }
+    
+    const porcentaje = (cumplidos / totalItems) * 100
+    return {
+      porcentaje: Math.round(porcentaje),
+      cumplidos,
+      totalItems
+    }
+  }
+
+  // Función para calcular la nota del módulo 6 (con lógica especial: 1 NO = 0%)
+  const calcularNotaModulo6 = () => {
+    const modulo6 = formData.pecManejoInfo
+    
+    if (!modulo6) return null
+    
+    let totalItems = 0
+    let cumplidos = 0
+    let tieneNo = false
+    
+    Object.values(modulo6).forEach(valor => {
+      if (valor && valor !== '') {
+        totalItems++
+        if (valor === 'SI') {
+          cumplidos++
+        } else if (valor === 'NO') {
+          tieneNo = true
+        }
+      }
+    })
+    
+    if (totalItems === 0) return null
+    
+    // Si hay al menos un "NO", la nota es 0%
+    if (tieneNo) {
+      return {
+        porcentaje: 0,
+        cumplidos: 0,
+        totalItems
+      }
+    }
+    
+    const porcentaje = (cumplidos / totalItems) * 100
+    return {
+      porcentaje: Math.round(porcentaje),
+      cumplidos,
+      totalItems
+    }
+  }
+
+  // Funciones de validación por módulo
+  const validarModulo1 = () => {
+    const camposRequeridos = [
+      formData.proveedor,
+      formData.analistaCalidad,
+      formData.idInteraccion,
+      formData.telefono,
+      formData.fechaLlamada,
+      formData.fechaMonitoreo,
+      formData.duracionLlamada,
+      formData.nombreAsesor,
+      formData.usuarioAsesor
+    ]
+    return camposRequeridos.every(campo => campo && campo !== '')
+  }
+
+  const validarModulo2 = () => {
+    const camposRequeridos = [
+      formData.tipoGestion,
+      formData.campanasOutbound,
+      formData.tipoMonitoreo,
+      formData.productoOfertado
+    ]
+    return camposRequeridos.every(campo => campo && campo !== '')
+  }
+
+  const validarModulo3 = () => {
+    const submodulos = [
+      formData.pencSaluda,
+      formData.pencEscucha,
+      formData.pencFormulas
+    ]
+    
+    return submodulos.every(submodulo => {
+      if (!submodulo) return false
+      return Object.values(submodulo).every(valor => valor && valor !== '')
+    })
+  }
+
+  const validarModulo4 = () => {
+    const submodulos = [
+      formData.pecInformacion,
+      formData.pecProceso,
+      formData.pecActitud,
+      formData.pecCalidad
+    ]
+    
+    return submodulos.every(submodulo => {
+      if (!submodulo) return false
+      return Object.values(submodulo).every(valor => valor && valor !== '')
+    })
+  }
+
+  const validarModulo5 = () => {
+    const submodulos = [
+      formData.pecGestionalComercial,
+      formData.pecValidacionesCRM
+    ]
+    
+    return submodulos.every(submodulo => {
+      if (!submodulo) return false
+      return Object.values(submodulo).every(valor => valor && valor !== '')
+    })
+  }
+
+  const validarModulo6 = () => {
+    const submodulo = formData.pecManejoInfo
+    if (!submodulo) return false
+    return Object.values(submodulo).every(valor => valor && valor !== '')
+  }
+
+  const validarModulo7 = () => {
+    const camposRequeridos = [
+      formData.novedadesCriticas,
+      formData.correoSupervisor,
+      formData.correoAnalistaCapacitacion,
+      formData.aplicaRetroalimentacion
+    ]
+    
+    const generoOrdenValidado = formData.generoOrden && 
+      Object.values(formData.generoOrden).every(valor => valor && valor !== '')
+    
+    return camposRequeridos.every(campo => campo && campo !== '') && generoOrdenValidado
+  }
+
+  const validarModuloActual = () => {
+    switch (pasoActual) {
+      case 1: return validarModulo1()
+      case 2: return validarModulo2()
+      case 3: return validarModulo3()
+      case 4: return validarModulo4()
+      case 5: return validarModulo5()
+      case 6: return validarModulo6()
+      case 7: return validarModulo7()
+      default: return true
+    }
+  }
+
   const siguientePaso = () => {
+    if (!validarModuloActual()) {
+      setErrorValidacion('Por favor complete todos los campos requeridos del módulo actual antes de continuar.')
+      return
+    }
+    
+    setErrorValidacion('')
     if (pasoActual < totalPasos) {
       setPasoActual(pasoActual + 1)
     }
@@ -307,34 +642,217 @@ function EncuestaMonitoreo({ llamada, usuario, onCerrar }) {
 
   const finalizarEncuesta = () => {
     console.log('Encuesta finalizada:', formData)
-    // Aquí se enviaría la encuesta al backend
+    setMostrarResumen(true)
+  }
+
+  const descargarPDF = () => {
+    const notaModulo3 = calcularNotaModulo3()
+    const notaModulo4 = calcularNotaModulo4()
+    const notaModulo5 = calcularNotaModulo5()
+    const notaModulo6 = calcularNotaModulo6()
+    
+    // Obtener ítems con baja nota para cada módulo
+    const itemsModulo3 = obtenerItemsBajaNota(3, [
+      formData.pencSaluda,
+      formData.pencEscucha,
+      formData.pencFormulas
+    ], [
+      { saludaDespide: 'Saluda / Se despide', scriptEstablecido: 'Script establecido' },
+      { desconcentracion: 'Desconcentración', evitaEspaciosBlanco: 'Evita espacios en Blanco', interrupciones: 'Interrupciones' },
+      { personalizaLlamada: 'Personaliza la llamada', seguridadLlamada: 'Seguridad en la llamada', amabilidadEmpatia: 'Amabilidad y empatía', buenTonoVoz: 'Buen tono de voz/vocabulario/tecnicismos' }
+    ])
+    
+    const itemsModulo4 = obtenerItemsBajaNota(4, [
+      formData.pecInformacion,
+      formData.pecProceso,
+      formData.pecActitud,
+      formData.pecCalidad
+    ], [
+      { informacionCorrecta: 'Información correcta/completa del producto ofrecido' },
+      { procesoCoordinacion: 'Correcto proceso de coordinación', verificacionDocumentos: 'Verificación de documentos', reglasOrtografia: 'Cumple con reglas ortografías y sintaxis en la redacción', procesoBiometrico: 'Cumple con el proceso biométrico', revisionScripter: 'Asesor realizó la revisión del scripter sugerido del cic' },
+      { mantieneAtencion: 'Mantiene la atención del cliente en la llamada', llamadaIncompleta: 'Llamada incompleta/corte de llamada', canalAbierto: 'Canal abierto' },
+      { solicitaEspera: 'Solicita y agradece la Espera', tiempoEspera: 'Tiempo de Espera y uso del hold (1:15)' }
+    ])
+    
+    const itemsModulo5 = obtenerItemsBajaNota(5, [
+      formData.pecGestionalComercial,
+      formData.pecValidacionesCRM
+    ], [
+      { seguimientoGestion: 'Seguimiento Gestión', validacionDatos: 'Validación Datos', validaCobertura: 'Valida Cobertura', sondeaNecesidades: 'Sondea Necesidades', ofrecimientoAcorde: 'Ofrecimiento Acorde', ofrecimientoEscalonado: 'Ofrecimiento Escalonado', rebateObjeciones: 'Rebate Objeciones', despejaDudas: 'Despeja Dudas', ofrecimientoPromocion: 'Ofrecimiento Promoción', incentivaBaja: 'Incentiva Baja', procedimientoURL: 'Procedimiento URL' },
+      { registroCRMOne: 'Registro CRM One', registroCRMVentas: 'Registro CRM Ventas', registroCodigoConclusion: 'Registro Código Conclusión' }
+    ])
+    
+    const itemsModulo6 = obtenerItemsBajaNota(6, [formData.pecManejoInfo], [{
+      validaIdentidad: 'Valida Identidad',
+      resumenVenta: 'Resumen de Venta',
+      mencionaPermanencia: 'Menciona Permanencia',
+      confirmaAceptacion: 'Confirma Aceptación',
+      indicaGrabacion: 'Indica Grabación',
+      tratamientoDatos: 'Tratamiento de Datos',
+      pausaSegura: 'Pausa Segura',
+      solicitaPermiso: 'Solicita Permiso'
+    }])
+    
+    const notas = [
+      { modulo: 'Módulo 3 - PENC', nota: notaModulo3, items: itemsModulo3 },
+      { modulo: 'Módulo 4 - PEC-UF', nota: notaModulo4, items: itemsModulo4 },
+      { modulo: 'Módulo 5 - PEC-NEG', nota: notaModulo5, items: itemsModulo5 },
+      { modulo: 'Módulo 6 - PEC CUM', nota: notaModulo6, items: itemsModulo6 }
+    ]
+    
+    // Crear contenido HTML para el PDF
+    const contenidoHTML = `
+      <div style="font-family: Arial, sans-serif; padding: 20px;">
+        <h1 style="color: #4caf50; text-align: center; margin-bottom: 30px;">
+          RESUMEN DE MONITOREO
+        </h1>
+        
+        <div style="margin-bottom: 30px;">
+          <h2 style="color: #333; border-bottom: 2px solid #4caf50; padding-bottom: 10px;">
+            Información General
+          </h2>
+          <p><strong>Asesor:</strong> ${formData.nombreAsesor}</p>
+          <p><strong>Usuario Asesor:</strong> ${formData.usuarioAsesor}</p>
+          <p><strong>ID Interacción:</strong> ${formData.idInteraccion}</p>
+          <p><strong>Teléfono:</strong> ${formData.telefono}</p>
+          <p><strong>Fecha Llamada:</strong> ${formData.fechaLlamada}</p>
+          <p><strong>Fecha Monitoreo:</strong> ${formData.fechaMonitoreo}</p>
+          <p><strong>Duración:</strong> ${formData.duracionLlamada}</p>
+        </div>
+        
+        <div style="margin-bottom: 30px;">
+          <h2 style="color: #333; border-bottom: 2px solid #4caf50; padding-bottom: 10px;">
+            Resumen de Notas
+          </h2>
+          ${notas.map(item => item.nota ? `
+            <div style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #ddd;">
+              <div style="display: flex; justify-content: space-between; padding: 10px 0;">
+                <span style="font-weight: 600;">${item.modulo}</span>
+                <span style="background-color: ${item.nota.porcentaje >= 80 ? '#4caf50' : item.nota.porcentaje >= 60 ? '#ff9800' : '#f44336'}; color: white; padding: 4px 12px; border-radius: 4px; font-weight: bold;">
+                  ${item.nota.porcentaje}%
+                </span>
+              </div>
+              ${item.items.length > 0 ? `
+                <div style="margin-top: 10px; padding: 10px; background-color: #fff3e0; border-left: 3px solid #ff9800;">
+                  <div style="font-size: 11px; font-weight: 600; color: #e65100; margin-bottom: 8px;">Ítems con baja nota:</div>
+                  ${item.items.map(itemBaja => `
+                    <div style="display: flex; align-items: center; padding: 4px 0; font-size: 12px;">
+                      <span style="margin-right: 8px;">${itemBaja.valor === 'NO' ? '✗' : '?'}</span>
+                      <span style="flex: 1;">${itemBaja.etiqueta}</span>
+                      <span style="background-color: #ff9800; color: white; padding: 2px 6px; border-radius: 3px; font-size: 10px; font-weight: bold;">${itemBaja.valor}</span>
+                    </div>
+                  `).join('')}
+                </div>
+              ` : ''}
+            </div>
+          ` : '').join('')}
+        </div>
+        
+        <div style="margin-bottom: 30px;">
+          <h2 style="color: #333; border-bottom: 2px solid #4caf50; padding-bottom: 10px;">
+            Retroalimentación
+          </h2>
+          <div style="background-color: #f9fafb; border: 1px solid #ddd; border-radius: 6px; padding: 15px; white-space: pre-wrap;">
+            ${formData.novedadesCriticas || 'No se registró retroalimentación'}
+          </div>
+        </div>
+        
+        <div style="text-align: center; color: #666; font-size: 12px; margin-top: 30px;">
+          <p>Generado el ${new Date().toLocaleDateString('es-PE', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+        </div>
+      </div>
+    `
+    
+    // Configuración para html2pdf
+    const opciones = {
+      margin: 1,
+      filename: `monitoreo_${formData.idInteraccion || 'reporte'}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2 },
+      jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+    }
+    
+    // Generar PDF
+    html2pdf().set(opciones).from(contenidoHTML).save()
+  }
+
+  const cerrarResumen = () => {
+    setMostrarResumen(false)
     onCerrar()
   }
 
   const renderBarraProgreso = () => {
-    const porcentaje = (pasoActual / totalPasos) * 100
+    const porcentajeBarra = ((pasoActual - 1) / (totalPasos - 1)) * 100
+    const notaModulo3 = calcularNotaModulo3()
+    const notaModulo4 = calcularNotaModulo4()
+    const notaModulo5 = calcularNotaModulo5()
+    const notaModulo6 = calcularNotaModulo6()
+    
+    const nombresModulos = [
+      'Datos Generales',
+      'Clasificación',
+      'PENC',
+      'PEC-UF',
+      'PEC-NEG',
+      'PEC CUM',
+      'Cierre'
+    ]
     
     return (
       <div className="barra-progreso">
         <div className="progreso-info">
-          <span className="paso-actual">Paso {pasoActual} de {totalPasos}</span>
-          <span className="porcentaje">{Math.round(porcentaje)}%</span>
+          <span className="paso-actual">{nombresModulos[pasoActual - 1]}</span>
+          <span className="porcentaje">{Math.round((pasoActual / totalPasos) * 100)}%</span>
         </div>
-        <div className="barra-contenedor">
+        
+        <div className="barra-contenedor-mejorada">
+          <div className="barra-linea">
           <div 
-            className="barra-llenado" 
-            style={{ width: `${porcentaje}%` }}
+              className="barra-progreso-llenado" 
+              style={{ width: `${porcentajeBarra}%` }}
           ></div>
         </div>
-        <div className="pasos-indicadores">
-          {Array.from({ length: totalPasos }, (_, i) => (
-            <div 
-              key={i + 1}
-              className={`indicador-paso ${i + 1 <= pasoActual ? 'completado' : ''}`}
-            >
-              {i + 1}
+          
+          <div className="indicadores-modulos">
+            {Array.from({ length: totalPasos }, (_, i) => {
+              const numeroModulo = i + 1
+              const esActual = numeroModulo === pasoActual
+              const estaCompletado = numeroModulo < pasoActual
+              
+              // Obtener la nota del módulo correspondiente
+              let nota = null
+              if (numeroModulo === 3) nota = notaModulo3
+              else if (numeroModulo === 4) nota = notaModulo4
+              else if (numeroModulo === 5) nota = notaModulo5
+              else if (numeroModulo === 6) nota = notaModulo6
+              
+              return (
+                <div key={numeroModulo} className="indicador-modulo-container">
+                  {/* Nota encima del indicador si corresponde */}
+                  {nota && (
+                    <div 
+                      className="nota-indicador" 
+                      style={{
+                        backgroundColor: nota.porcentaje >= 80 ? '#4caf50' : nota.porcentaje >= 60 ? '#ff9800' : '#f44336'
+                      }}
+                    >
+                      {nota.porcentaje}%
             </div>
-          ))}
+                  )}
+                  
+                  {/* Número del módulo */}
+                  <div 
+                    className={`indicador-modulo ${esActual ? 'actual' : ''} ${estaCompletado ? 'completado' : ''}`}
+                  >
+                    {numeroModulo}
+                  </div>
+                  
+                  {/* Etiqueta del módulo */}
+                  <div className="etiqueta-modulo">{nombresModulos[i]}</div>
+                </div>
+              )
+            })}
+          </div>
         </div>
       </div>
     )
@@ -858,37 +1376,6 @@ function EncuestaMonitoreo({ llamada, usuario, onCerrar }) {
             </div>
 
             <div className="form-group">
-              <label>Concretó la venta en la llamada *</label>
-              <div className="radio-group radio-group-grid">
-                {['SI', 'NO', 'NO APLICA'].map(opcion => (
-                  <label key={opcion} className="radio-option">
-                    <input
-                      type="radio"
-                      name="concretoVenta"
-                      value={opcion}
-                      checked={formData.concretoVenta === opcion}
-                      onChange={handleInputChange}
-                    />
-                    <span>{opcion}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            {formData.concretoVenta === 'NO' && (
-              <div className="form-group full-width">
-                <label>Porque no se concretó la venta?</label>
-                <textarea
-                  name="porqueNoConcreto"
-                  value={formData.porqueNoConcreto}
-                  onChange={handleInputChange}
-                  placeholder="Explique por qué no se concretó la venta..."
-                  rows="3"
-                />
-              </div>
-            )}
-
-            <div className="form-group">
               <label>AGREGAR EL CORREO DEL SUPERVISOR *</label>
               <input
                 type="email"
@@ -996,9 +1483,156 @@ function EncuestaMonitoreo({ llamada, usuario, onCerrar }) {
     }
   }
 
+  // Función para obtener los ítems con baja nota (NO o NA) de un módulo
+  const obtenerItemsBajaNota = (modulo, submodulos, etiquetas) => {
+    const itemsBajaNota = []
+    
+    if (!submodulos || !Array.isArray(submodulos)) return itemsBajaNota
+    
+    submodulos.forEach((submodulo, subIndex) => {
+      if (submodulo) {
+        Object.entries(submodulo).forEach(([key, valor]) => {
+          if (valor === 'NO' || valor === 'NA') {
+            const etiqueta = etiquetas[subIndex]?.[key] || key
+            itemsBajaNota.push({ etiqueta, valor })
+          }
+        })
+      }
+    })
+    
+    return itemsBajaNota
+  }
+
+  const renderResumen = () => {
+    const notaModulo3 = calcularNotaModulo3()
+    const notaModulo4 = calcularNotaModulo4()
+    const notaModulo5 = calcularNotaModulo5()
+    const notaModulo6 = calcularNotaModulo6()
+    
+    // Obtener ítems con baja nota para cada módulo
+    const itemsModulo3 = obtenerItemsBajaNota(3, [
+      formData.pencSaluda,
+      formData.pencEscucha,
+      formData.pencFormulas
+    ], [
+      { saludaDespide: 'Saluda / Se despide', scriptEstablecido: 'Script establecido' },
+      { desconcentracion: 'Desconcentración', evitaEspaciosBlanco: 'Evita espacios en Blanco', interrupciones: 'Interrupciones' },
+      { personalizaLlamada: 'Personaliza la llamada', seguridadLlamada: 'Seguridad en la llamada', amabilidadEmpatia: 'Amabilidad y empatía', buenTonoVoz: 'Buen tono de voz/vocabulario/tecnicismos' }
+    ])
+    
+    const itemsModulo4 = obtenerItemsBajaNota(4, [
+      formData.pecInformacion,
+      formData.pecProceso,
+      formData.pecActitud,
+      formData.pecCalidad
+    ], [
+      { informacionCorrecta: 'Información correcta/completa del producto ofrecido' },
+      { procesoCoordinacion: 'Correcto proceso de coordinación', verificacionDocumentos: 'Verificación de documentos', reglasOrtografia: 'Cumple con reglas ortografías y sintaxis en la redacción', procesoBiometrico: 'Cumple con el proceso biométrico', revisionScripter: 'Asesor realizó la revisión del scripter sugerido del cic' },
+      { mantieneAtencion: 'Mantiene la atención del cliente en la llamada', llamadaIncompleta: 'Llamada incompleta/corte de llamada', canalAbierto: 'Canal abierto' },
+      { solicitaEspera: 'Solicita y agradece la Espera', tiempoEspera: 'Tiempo de Espera y uso del hold (1:15)' }
+    ])
+    
+    const itemsModulo5 = obtenerItemsBajaNota(5, [
+      formData.pecGestionalComercial,
+      formData.pecValidacionesCRM
+    ], [
+      { seguimientoGestion: 'Seguimiento Gestión', validacionDatos: 'Validación Datos', validaCobertura: 'Valida Cobertura', sondeaNecesidades: 'Sondea Necesidades', ofrecimientoAcorde: 'Ofrecimiento Acorde', ofrecimientoEscalonado: 'Ofrecimiento Escalonado', rebateObjeciones: 'Rebate Objeciones', despejaDudas: 'Despeja Dudas', ofrecimientoPromocion: 'Ofrecimiento Promoción', incentivaBaja: 'Incentiva Baja', procedimientoURL: 'Procedimiento URL' },
+      { registroCRMOne: 'Registro CRM One', registroCRMVentas: 'Registro CRM Ventas', registroCodigoConclusion: 'Registro Código Conclusión' }
+    ])
+    
+    const itemsModulo6 = obtenerItemsBajaNota(6, [formData.pecManejoInfo], [{
+      validaIdentidad: 'Valida Identidad',
+      resumenVenta: 'Resumen de Venta',
+      mencionaPermanencia: 'Menciona Permanencia',
+      confirmaAceptacion: 'Confirma Aceptación',
+      indicaGrabacion: 'Indica Grabación',
+      tratamientoDatos: 'Tratamiento de Datos',
+      pausaSegura: 'Pausa Segura',
+      solicitaPermiso: 'Solicita Permiso'
+    }])
+    
+    const notas = [
+      { modulo: 'Módulo 3 - PENC', nota: notaModulo3, items: itemsModulo3 },
+      { modulo: 'Módulo 4 - PEC-UF', nota: notaModulo4, items: itemsModulo4 },
+      { modulo: 'Módulo 5 - PEC-NEG', nota: notaModulo5, items: itemsModulo5 },
+      { modulo: 'Módulo 6 - PEC CUM', nota: notaModulo6, items: itemsModulo6 }
+    ]
+    
+    return (
+      <div className="resumen-final">
+        <div className="resumen-header">
+          <Icon icon="mdi:check-circle" className="resumen-icon-success" />
+          <h2>Monitoreo Finalizado</h2>
+        </div>
+        
+        <div className="resumen-content">
+          <div className="resumen-notas">
+            <h3>Resumen de Notas</h3>
+            {notas.map((item, index) => (
+              item.nota && (
+                <div key={index} className="nota-modulo-completo">
+                  <div className="nota-item">
+                    <span className="nota-modulo-nombre">{item.modulo}</span>
+                    <span 
+                      className="nota-modulo-valor"
+                      style={{
+                        backgroundColor: item.nota.porcentaje >= 80 ? '#4caf50' : item.nota.porcentaje >= 60 ? '#ff9800' : '#f44336',
+                        color: 'white',
+                        padding: '4px 12px',
+                        borderRadius: '4px',
+                        fontWeight: 'bold'
+                      }}
+                    >
+                      {item.nota.porcentaje}%
+                    </span>
+                  </div>
+                  {item.items.length > 0 && (
+                    <div className="items-baja-nota">
+                      <div className="items-baja-nota-titulo">Ítems con baja nota:</div>
+                      {item.items.map((itemBaja, idx) => (
+                        <div key={idx} className="item-baja-nota-item">
+                          <Icon icon={itemBaja.valor === 'NO' ? 'mdi:close-circle' : 'mdi:help-circle'} 
+                            style={{ color: itemBaja.valor === 'NO' ? '#f44336' : '#ff9800', marginRight: '8px' }} 
+                          />
+                          <span>{itemBaja.etiqueta}</span>
+                          <span className="item-baja-nota-valor">{itemBaja.valor}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )
+            ))}
+          </div>
+          
+          <div className="resumen-retroalimentacion">
+            <h3>Retroalimentación</h3>
+            <div className="retroalimentacion-texto">
+              {formData.novedadesCriticas || 'No se registró retroalimentación'}
+            </div>
+          </div>
+        </div>
+        
+        <div className="resumen-footer">
+          <button className="btn-descargar" onClick={descargarPDF}>
+            <Icon icon="mdi:download" />
+            Descargar PDF
+          </button>
+          <button className="btn-cerrar-resumen" onClick={cerrarResumen}>
+            Cerrar
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="encuesta-monitoreo-overlay">
       <div className="encuesta-monitoreo-container">
+        {mostrarResumen ? (
+          renderResumen()
+        ) : (
+          <>
         <div className="encuesta-header">
           <div className="encuesta-titulo">
             <img src="/partnerlogo.svg" alt="Claro" className="logo-claro" />
@@ -1038,6 +1672,28 @@ function EncuestaMonitoreo({ llamada, usuario, onCerrar }) {
             </button>
           )}
         </div>
+
+            {/* Popup de Error de Validación */}
+            {errorValidacion && (
+              <div className="popup-overlay" onClick={() => setErrorValidacion('')}>
+                <div className="popup-error" onClick={(e) => e.stopPropagation()}>
+                  <div className="popup-header">
+                    <Icon icon="mdi:alert-circle" className="popup-icon" />
+                    <h3>Campos Incompletos</h3>
+                  </div>
+                  <div className="popup-body">
+                    <p>{errorValidacion}</p>
+                  </div>
+                  <div className="popup-footer">
+                    <button className="btn-popup" onClick={() => setErrorValidacion('')}>
+                      Entendido
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </>
+        )}
       </div>
     </div>
   )
