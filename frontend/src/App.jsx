@@ -954,19 +954,42 @@ function App() {
         <header>
           <div className="header-content">
             <div className="header-left">
-      <div>
-                <h1>🎧 Monitor de Llamadas</h1>
-                <p>Sistema de auditoría de llamadas</p>
+              <div className="header-avatar">
+                {usuario.nombre.charAt(0).toUpperCase()}
+              </div>
+              <div>
+                <h1>Monitor de Llamadas</h1>
+                <p>Sistema de auditoría y monitoreo</p>
               </div>
             </div>
             <div className="header-right">
+              <div className="header-search">
+                <Icon icon="mdi:magnify" className="header-search-icon" />
+                <input type="text" placeholder="Buscar..." />
+              </div>
+              <div className="header-actions">
+                <button className="header-icon-btn" title="Notificaciones">
+                  <Icon icon="mdi:bell" />
+                  <span className="notification-badge"></span>
+                </button>
+                <button className="header-icon-btn" title="Configuración">
+                  <Icon icon="mdi:cog" />
+                </button>
+              </div>
               <div className="user-info">
                 <span className="user-name">{usuario.nombre}</span>
-                <span className="user-rol">{usuario.rol === 'jefa' ? <><Icon icon="mdi:crown" style={{marginRight: '4px'}} />Jefa</> : <><Icon icon="mdi:account" style={{marginRight: '4px'}} />Monitor</>}</span>
-      </div>
+                <span className="user-rol">
+                  {usuario.rol === 'jefa' ? (
+                    <><Icon icon="mdi:crown" style={{marginRight: '4px'}} />Jefa</>
+                  ) : (
+                    <><Icon icon="mdi:account" style={{marginRight: '4px'}} />Monitor</>
+                  )}
+                </span>
+              </div>
               <button className="btn-logout" onClick={handleLogout}>
-                <Icon icon="mdi:logout" style={{marginRight: '4px'}} />Cerrar Sesión
-        </button>
+                <Icon icon="mdi:logout" />
+                Cerrar Sesión
+              </button>
             </div>
           </div>
         </header>
@@ -975,8 +998,7 @@ function App() {
           {renderModulo()}
         </div>
       </div>
-
-      </div>
+    </div>
   )
 }
 

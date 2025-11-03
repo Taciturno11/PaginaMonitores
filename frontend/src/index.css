@@ -1,18 +1,47 @@
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 500;
+  font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  line-height: 1.6;
+  font-weight: 400;
 
-  /* Paleta Simple - Blanco y Negro */
-  --primary-1: #000000;    /* Negro - Texto principal */
-  --primary-2: #ffffff;    /* Blanco - Sidebar y Header */
-  --primary-3: #3073F0;    /* Gris oscuro - Botones */
-  --primary-4: #F7F9FC;    /* Blanco - Fondo general */
-  --primary-5: #ffffff;    /* Blanco - Tarjetas */
+  /* Paleta Moderna - Inspirada en diseño de referencia */
+  --primary-dark: #0f4c4c;      /* Verde azulado oscuro - Sidebar */
+  --primary-main: #158c8c;      /* Verde azulado principal */
+  --primary-light: #20b2aa;     /* Verde azulado claro */
+  --primary-bg: #e8f4f4;        /* Fondo verde muy claro */
+  
+  --accent-yellow: #fbbf24;     /* Amarillo/Naranja - Acentos */
+  --accent-orange: #f59e0b;     /* Naranja */
+  
+  --text-primary: #1f2937;      /* Texto principal - gris muy oscuro */
+  --text-secondary: #6b7280;    /* Texto secundario - gris medio */
+  --text-light: #9ca3af;        /* Texto claro */
+  --text-white: #ffffff;        /* Texto blanco */
+  
+  --bg-main: #f9fafb;           /* Fondo principal */
+  --bg-card: #ffffff;           /* Fondo de tarjetas */
+  --bg-hover: #f3f4f6;          /* Hover states */
+  
+  --border-light: #e5e7eb;      /* Bordes claros */
+  --border-medium: #d1d5db;     /* Bordes medios */
+  
+  --success: #10b981;           /* Verde éxito */
+  --warning: #f59e0b;           /* Amarillo advertencia */
+  --error: #ef4444;             /* Rojo error */
+  --info: #3b82f6;              /* Azul información */
+  
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
 
   color-scheme: light;
-  color: var(--primary-1);
-  background-color: var(--primary-4);
+  color: var(--text-primary);
+  background-color: var(--bg-main);
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -22,11 +51,11 @@
 
 a {
   font-weight: 600;
-  color: var(--primary-1);
+  color: var(--primary-main);
   text-decoration: inherit;
 }
 a:hover {
-  color: var(--primary-3);
+  color: var(--primary-light);
 }
 
 body {
@@ -40,30 +69,54 @@ body {
   min-height: 100vh;
 }
 
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text-primary);
+  font-weight: 600;
+  margin: 0;
+  line-height: 1.2;
+}
+
 h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+  font-size: 2.5em;
+}
+
+h2 {
+  font-size: 2em;
+}
+
+h3 {
+  font-size: 1.5em;
 }
 
 button {
-  border-radius: 8px;
-  border: 1px solid var(--primary-3);
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
   padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 600;
+  font-size: 0.95em;
+  font-weight: 500;
   font-family: inherit;
-  background-color: var(--primary-3);
-  color: var(--primary-2);
+  background-color: var(--primary-main);
+  color: var(--text-white);
   cursor: pointer;
-  transition: all 0.25s;
+  transition: all 0.2s ease;
+  box-shadow: var(--shadow-sm);
 }
+
 button:hover {
-  background-color: var(--primary-1);
-  border-color: var(--primary-1);
+  background-color: var(--primary-dark);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
 }
+
+button:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-sm);
+}
+
 button:focus,
 button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+  outline: 2px solid var(--primary-light);
+  outline-offset: 2px;
 }
 
 /* Estilos globales para iconos de Iconify */
@@ -77,16 +130,59 @@ svg {
   color: inherit;
 }
 
+/* Utilidades de diseño moderno */
+.card {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-md);
+  transition: all 0.2s ease;
+}
+
+.card:hover {
+  box-shadow: var(--shadow-lg);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.8rem;
+  border-radius: var(--radius-md);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.text-primary {
+  color: var(--text-primary);
+}
+
+.text-secondary {
+  color: var(--text-secondary);
+}
+
+.text-success {
+  color: var(--success);
+}
+
+.text-warning {
+  color: var(--warning);
+}
+
+.text-error {
+  color: var(--error);
+}
+
 @media (prefers-color-scheme: light) {
   :root {
-    color: var(--primary-1);
-    background-color: var(--primary-4);
+    color: var(--text-primary);
+    background-color: var(--bg-main);
   }
   a:hover {
-    color: var(--primary-3);
+    color: var(--primary-light);
   }
   button {
-    background-color: var(--primary-3);
-    color: var(--primary-2);
+    background-color: var(--primary-main);
+    color: var(--text-white);
   }
 }
