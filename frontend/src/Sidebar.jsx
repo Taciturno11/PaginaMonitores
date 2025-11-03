@@ -2,7 +2,7 @@ import { useState } from 'react'
 import './Sidebar.css'
 import { Icon } from '@iconify/react'
 
-function Sidebar({ rol, moduloActivo, onCambiarModulo }) {
+function Sidebar({ rol, moduloActivo, onCambiarModulo, onLogout }) {
   const [colapsado, setColapsado] = useState(false);
 
   const toggleSidebar = () => {
@@ -51,6 +51,17 @@ function Sidebar({ rol, moduloActivo, onCambiarModulo }) {
           </button>
         ))}
       </nav>
+
+      <div className="sidebar-footer">
+        <button 
+          className="sidebar-logout"
+          onClick={onLogout}
+          title="Cerrar Sesión"
+        >
+          <Icon icon="mdi:logout" className="sidebar-icono" />
+          {!colapsado && <span className="sidebar-texto">Cerrar Sesión</span>}
+        </button>
+      </div>
     </div>
   );
 }

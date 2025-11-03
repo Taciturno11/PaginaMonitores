@@ -751,23 +751,9 @@ function App() {
                     Audio de la Llamada
                   </h3>
                   {audioCargando ? (
-                    <div style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      padding: '40px',
-                      gap: '20px'
-                    }}>
-                      <div style={{
-                        width: '50px',
-                        height: '50px',
-                        border: '4px solid #f3f3f3',
-                        borderTop: '4px solid #4caf50',
-                        borderRadius: '50%',
-                        animation: 'spin 1s linear infinite'
-                      }}></div>
-                      <div style={{ color: '#666', fontSize: '14px' }}>
+                    <div className="audio-loading-container">
+                      <div className="audio-spinner"></div>
+                      <div className="audio-loading-text">
                         Cargando audio...
                       </div>
                     </div>
@@ -947,7 +933,8 @@ function App() {
       <Sidebar 
         rol={usuario.rol} 
         moduloActivo={moduloActivo} 
-        onCambiarModulo={handleCambiarModulo} 
+        onCambiarModulo={handleCambiarModulo}
+        onLogout={handleLogout}
       />
       
       <div className="main-content">
@@ -963,19 +950,6 @@ function App() {
               </div>
             </div>
             <div className="header-right">
-              <div className="header-search">
-                <Icon icon="mdi:magnify" className="header-search-icon" />
-                <input type="text" placeholder="Buscar..." />
-              </div>
-              <div className="header-actions">
-                <button className="header-icon-btn" title="Notificaciones">
-                  <Icon icon="mdi:bell" />
-                  <span className="notification-badge"></span>
-                </button>
-                <button className="header-icon-btn" title="Configuración">
-                  <Icon icon="mdi:cog" />
-                </button>
-              </div>
               <div className="user-info">
                 <span className="user-name">{usuario.nombre}</span>
                 <span className="user-rol">
@@ -986,10 +960,6 @@ function App() {
                   )}
                 </span>
               </div>
-              <button className="btn-logout" onClick={handleLogout}>
-                <Icon icon="mdi:logout" />
-                Cerrar Sesión
-              </button>
             </div>
           </div>
         </header>

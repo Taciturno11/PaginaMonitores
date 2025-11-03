@@ -111,8 +111,6 @@ function EncuestaMonitoreo({ llamada, usuario, onCerrar }) {
       entregoEquipo: ''
     },
     porqueNoConcreto: '',
-    correoSupervisor: '',
-    correoAnalistaCapacitacion: '',
     aplicaRetroalimentacion: ''
   })
 
@@ -611,8 +609,6 @@ function EncuestaMonitoreo({ llamada, usuario, onCerrar }) {
   const validarModulo7 = () => {
     const camposRequeridos = [
       formData.novedadesCriticas,
-      formData.correoSupervisor,
-      formData.correoAnalistaCapacitacion,
       formData.aplicaRetroalimentacion
     ]
     
@@ -878,62 +874,14 @@ function EncuestaMonitoreo({ llamada, usuario, onCerrar }) {
       <div className="form-grid">
         <div className="form-group">
           <label>Seleccione Proveedor *</label>
-          <div className="radio-group">
-            <label className="radio-option">
-              <input
-                type="radio"
-                name="proveedor"
-                value="PARTNER"
-                checked={formData.proveedor === 'PARTNER'}
-                onChange={handleInputChange}
-              />
-              <span>PARTNER</span>
-            </label>
-            <label className="radio-option">
-              <input
-                type="radio"
-                name="proveedor"
-                value="other"
-                checked={formData.proveedor !== 'PARTNER'}
-                onChange={() => {
-                  setMostrarOtrosProveedores(true)
-                }}
-              />
-              <span>+ Proveedores</span>
-            </label>
-          </div>
+          <input
+            type="text"
+            name="proveedor"
+            value={formData.proveedor}
+            disabled
+            style={{ backgroundColor: 'var(--bg-hover)', cursor: 'not-allowed', fontWeight: '600' }}
+          />
         </div>
-
-        {/* Popup de Proveedores */}
-        {mostrarOtrosProveedores && (
-          <div className="proveedores-popup-overlay" onClick={() => setMostrarOtrosProveedores(false)}>
-            <div className="proveedores-popup-container" onClick={(e) => e.stopPropagation()}>
-              <div className="proveedores-popup-header">
-                <h3>Seleccione un Proveedor</h3>
-                <button className="proveedores-popup-cerrar" onClick={() => setMostrarOtrosProveedores(false)}>
-                  <Icon icon="mdi:close" />
-                </button>
-              </div>
-              <div className="proveedores-popup-content">
-                {['ACC', 'CANTEC', 'PABELPE', 'ORVILACA', 'RECUPERA', 'GNP', 'BRM'].map(proveedor => (
-                  <label key={proveedor} className="proveedores-popup-option">
-                    <input
-                      type="radio"
-                      name="proveedor"
-                      value={proveedor}
-                      checked={formData.proveedor === proveedor}
-                      onChange={(e) => {
-                        handleInputChange(e)
-                        setMostrarOtrosProveedores(false)
-                      }}
-                    />
-                    <span>{proveedor}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
 
         <div className="form-group">
           <label>Analista de Calidad *</label>
@@ -1069,58 +1017,37 @@ function EncuestaMonitoreo({ llamada, usuario, onCerrar }) {
       <div className="form-grid">
         <div className="form-group">
           <label>Tipo de Gestión *</label>
-          <div className="radio-group radio-group-grid">
-            {['INBOUND', 'OUTBOUND', 'INBOUND VENTAS'].map(tipo => (
-              <label key={tipo} className="radio-option">
-                <input
-                  type="radio"
-                  name="tipoGestion"
-                  value={tipo}
-                  checked={formData.tipoGestion === tipo}
-                  onChange={handleInputChange}
-                />
-                <span>{tipo}</span>
-              </label>
-            ))}
-          </div>
+          <input
+            type="text"
+            name="tipoGestion"
+            value={formData.tipoGestion}
+            disabled
+            style={{ backgroundColor: 'var(--bg-hover)', cursor: 'not-allowed', fontWeight: '600' }}
+          />
         </div>
 
         {formData.tipoGestion === 'OUTBOUND' && (
           <div className="form-group">
             <label>CAMPAÑAS OUTBOUND *</label>
-            <div className="radio-group radio-group-grid">
-              {['RENOVACIÓN', 'PORTABILIDAD - LINEA NUEVA', 'MIGRACIÓN', 'PORTABILIDAD PPA', 'UPGRADE'].map(campana => (
-                <label key={campana} className="radio-option">
-                  <input
-                    type="radio"
-                    name="campanasOutbound"
-                    value={campana}
-                    checked={formData.campanasOutbound === campana}
-                    onChange={handleInputChange}
-                  />
-                  <span>{campana}</span>
-                </label>
-              ))}
-            </div>
+            <input
+              type="text"
+              name="campanasOutbound"
+              value={formData.campanasOutbound}
+              disabled
+              style={{ backgroundColor: 'var(--bg-hover)', cursor: 'not-allowed', fontWeight: '600' }}
+            />
           </div>
         )}
 
         <div className="form-group">
           <label>Tipo de Monitoreo *</label>
-          <div className="radio-group radio-group-grid">
-            {['Aleatorio', 'Auditoría'].map(tipo => (
-              <label key={tipo} className="radio-option">
-                <input
-                  type="radio"
-                  name="tipoMonitoreo"
-                  value={tipo}
-                  checked={formData.tipoMonitoreo === tipo}
-                  onChange={handleInputChange}
-                />
-                <span>{tipo}</span>
-              </label>
-            ))}
-          </div>
+          <input
+            type="text"
+            name="tipoMonitoreo"
+            value={formData.tipoMonitoreo}
+            disabled
+            style={{ backgroundColor: 'var(--bg-hover)', cursor: 'not-allowed', fontWeight: '600' }}
+          />
         </div>
 
         <div className="form-group">
@@ -1150,7 +1077,7 @@ function EncuestaMonitoreo({ llamada, usuario, onCerrar }) {
         {items.map(item => (
           <div key={item.key} className="cuadricula-fila">
             <div className="col-item">{item.label}</div>
-            <div className="col-si">
+            <div className="col-si" onClick={() => handleRadioChange(seccion, item.key, 'SI')}>
               <input
                 type="radio"
                 name={`${seccion}_${item.key}`}
@@ -1158,7 +1085,7 @@ function EncuestaMonitoreo({ llamada, usuario, onCerrar }) {
                 onChange={() => handleRadioChange(seccion, item.key, 'SI')}
               />
             </div>
-            <div className="col-no">
+            <div className="col-no" onClick={() => handleRadioChange(seccion, item.key, 'NO')}>
               <input
                 type="radio"
                 name={`${seccion}_${item.key}`}
@@ -1166,7 +1093,7 @@ function EncuestaMonitoreo({ llamada, usuario, onCerrar }) {
                 onChange={() => handleRadioChange(seccion, item.key, 'NO')}
               />
             </div>
-            <div className="col-na">
+            <div className="col-na" onClick={() => handleRadioChange(seccion, item.key, 'NA')}>
               <input
                 type="radio"
                 name={`${seccion}_${item.key}`}
@@ -1416,28 +1343,6 @@ function EncuestaMonitoreo({ llamada, usuario, onCerrar }) {
             </div>
 
             <div className="form-group">
-              <label>AGREGAR EL CORREO DEL SUPERVISOR *</label>
-              <input
-                type="email"
-                name="correoSupervisor"
-                value={formData.correoSupervisor}
-                onChange={handleInputChange}
-                placeholder="supervisor@claro.com"
-              />
-            </div>
-
-            <div className="form-group">
-              <label>AGREGAR EL CORREO DEL ANALISTA Y CAPACITACIÓN *</label>
-              <input
-                type="email"
-                name="correoAnalistaCapacitacion"
-                value={formData.correoAnalistaCapacitacion}
-                onChange={handleInputChange}
-                placeholder="analista@claro.com"
-              />
-            </div>
-
-            <div className="form-group">
               <label>APLICA RETROALIMENTACIÓN *</label>
               <div className="radio-group radio-group-grid">
                 {['SI', 'NO'].map(opcion => (
@@ -1476,7 +1381,7 @@ function EncuestaMonitoreo({ llamada, usuario, onCerrar }) {
                 ].map(item => (
                   <div key={item.key} className="cuadricula-fila">
                     <div className="col-item">{item.label}</div>
-                    <div className="col-si">
+                    <div className="col-si" onClick={() => handleRadioChange('generoOrden', item.key, 'SI')}>
                       <input
                         type="radio"
                         name={`generoOrden_${item.key}`}
@@ -1484,7 +1389,7 @@ function EncuestaMonitoreo({ llamada, usuario, onCerrar }) {
                         onChange={() => handleRadioChange('generoOrden', item.key, 'SI')}
                       />
                     </div>
-                    <div className="col-no">
+                    <div className="col-no" onClick={() => handleRadioChange('generoOrden', item.key, 'NO')}>
                       <input
                         type="radio"
                         name={`generoOrden_${item.key}`}
@@ -1492,7 +1397,7 @@ function EncuestaMonitoreo({ llamada, usuario, onCerrar }) {
                         onChange={() => handleRadioChange('generoOrden', item.key, 'NO')}
                       />
                     </div>
-                    <div className="col-na">
+                    <div className="col-na" onClick={() => handleRadioChange('generoOrden', item.key, 'NA')}>
                       <input
                         type="radio"
                         name={`generoOrden_${item.key}`}

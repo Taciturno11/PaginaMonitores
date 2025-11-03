@@ -493,32 +493,35 @@ header p {
 }
 
 .llamada-detalle {
-  background: white;
+  background: var(--bg-card);
   padding: 25px;
-  border-radius: 10px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
 }
 
 .llamada-detalle h2 {
   margin-top: 0;
-  color: #333;
-  border-bottom: 2px solid #3073F0;
+  color: var(--text-primary);
+  border-bottom: 2px solid var(--primary-main);
   padding-bottom: 10px;
   font-size: 1.5rem;
   margin-bottom: 20px;
+  display: flex;
+  align-items: center;
 }
 
 .audio-player-container {
-  background: white;
+  background: var(--bg-card);
   padding: 12px 15px;
-  border-radius: 10px;
+  border-radius: var(--radius-lg);
   margin-bottom: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-light);
 }
 
 .audio-player-container h3 {
   margin: 0 0 10px 0;
-  color: #333;
+  color: var(--text-primary);
   font-size: 1rem;
   font-weight: 600;
   display: flex;
@@ -528,22 +531,22 @@ header p {
 .audio-player {
   width: 100%;
   height: 40px;
-  border-radius: 6px;
-  background: white;
+  border-radius: var(--radius-md);
+  background: var(--bg-card);
 }
 
 .audio-player::-webkit-media-controls-panel {
-  background-color: white;
+  background-color: var(--bg-card);
 }
 
 .audio-player::-webkit-media-controls-play-button {
-  background-color: #3073F0;
+  background-color: var(--primary-main);
   border-radius: 50%;
 }
 
 .audio-player::-webkit-media-controls-current-time-display,
 .audio-player::-webkit-media-controls-time-remaining-display {
-  color: #333;
+  color: var(--text-primary);
   font-weight: 600;
 }
 
@@ -554,18 +557,19 @@ header p {
 }
 
 .detalle-seccion {
-  background: #f3f3f5;
+  background: var(--bg-hover);
   padding: 20px;
-  border-radius: 10px;
-  border-left: 4px solid #3073F0;
+  border-radius: var(--radius-lg);
+  border-left: 4px solid var(--primary-main);
 }
 
 .detalle-seccion h3 {
   margin: 0 0 15px 0;
-  color: #6b7280;
+  color: var(--primary-main);
   font-size: 1.1rem;
   font-weight: 600;
-  color: #3073F0;
+  display: flex;
+  align-items: center;
 }
 
 .detalle-linea {
@@ -573,7 +577,7 @@ header p {
   align-items: center;
   gap: 12px;
   padding: 10px 0;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 1px solid var(--border-light);
 }
 
 .detalle-linea:last-child {
@@ -586,99 +590,103 @@ header p {
   text-align: center;
 }
 
-/* Colores específicos para iconos del detalle de llamada */
+/* Colores específicos para iconos del detalle de llamada usando paleta teal */
 .detalle-linea .icono {
-  color: #6366f1; /* Color por defecto */
+  color: var(--primary-main); /* Color por defecto teal */
 }
 
 /* Información de la llamada - Iconos por posición */
 .detalle-seccion:nth-of-type(1) .detalle-linea:nth-child(2) .icono {
-  color: #6366f1; /* ID */
+  color: var(--primary-main); /* ID - teal */
 }
 
 .detalle-seccion:nth-of-type(1) .detalle-linea:nth-child(3) .icono {
-  color: #10b981; /* Teléfono */
+  color: var(--success); /* Teléfono - verde */
 }
 
 .detalle-seccion:nth-of-type(1) .detalle-linea:nth-child(4) .icono {
-  color: #f59e0b; /* Fecha */
+  color: var(--warning); /* Fecha - naranja */
 }
 
 .detalle-seccion:nth-of-type(1) .detalle-linea:nth-child(5) .icono {
-  color: #8b5cf6; /* Hora */
+  color: var(--primary-light); /* Hora - teal claro */
 }
 
 .detalle-seccion:nth-of-type(1) .detalle-linea:nth-child(6) .icono {
-  color: #ec4899; /* Duración */
+  color: var(--accent-yellow); /* Duración - amarillo */
 }
 
 /* Agente - Iconos por posición */
 .detalle-seccion:nth-of-type(2) .detalle-linea:nth-child(2) .icono {
-  color: #3b82f6; /* Nombre */
+  color: var(--primary-main); /* Nombre - teal */
 }
 
 .detalle-seccion:nth-of-type(2) .detalle-linea:nth-child(3) .icono {
-  color: #10b981; /* Cargo */
+  color: var(--success); /* Cargo - verde */
 }
 
 .detalle-seccion:nth-of-type(2) .detalle-linea:nth-child(4) .icono {
-  color: #10b981; /* Estado */
+  color: var(--success); /* Antigüedad - verde */
 }
 
 .detalle-seccion:nth-of-type(2) .detalle-linea:nth-child(5) .icono {
-  color: #f59e0b; /* Modalidad */
+  color: var(--success); /* Estado - verde */
 }
 
 .detalle-seccion:nth-of-type(2) .detalle-linea:nth-child(6) .icono {
-  color: #8b5cf6; /* Jornada */
+  color: var(--warning); /* Modalidad - naranja */
+}
+
+.detalle-seccion:nth-of-type(2) .detalle-linea:nth-child(7) .icono {
+  color: var(--primary-light); /* Jornada - teal claro */
 }
 
 /* Campaña y Gestión - Iconos por posición */
 .detalle-seccion:nth-of-type(3) .detalle-linea:nth-child(2) .icono {
-  color: #ef4444; /* Campaña */
+  color: var(--primary-dark); /* Campaña - teal oscuro */
 }
 
 .detalle-seccion:nth-of-type(3) .detalle-linea:nth-child(3) .icono {
-  color: #10b981; /* Cola */
+  color: var(--success); /* Cola - verde */
 }
 
 .detalle-seccion:nth-of-type(3) .detalle-linea:nth-child(4) .icono {
-  color: #8b5cf6; /* Supervisor */
+  color: var(--primary-main); /* Supervisor - teal */
 }
 
 .detalle-seccion:nth-of-type(3) .detalle-linea:nth-child(5) .icono {
-  color: #06b6d4; /* Usuario Origen */
+  color: var(--primary-light); /* Usuario Origen - teal claro */
 }
 
 /* Tipificación - Iconos por posición */
 .detalle-seccion:nth-of-type(4) .detalle-linea:nth-child(2) .icono {
-  color: #3b82f6; /* Detalle */
+  color: var(--primary-main); /* Detalle - teal */
 }
 
 .detalle-seccion:nth-of-type(4) .detalle-linea:nth-child(3) .icono {
-  color: #10b981; /* Estado IPC */
+  color: var(--success); /* Estado IPC - verde */
 }
 
 .detalle-seccion:nth-of-type(4) .detalle-linea:nth-child(4) .icono {
-  color: #10b981; /* Estado General */
+  color: var(--success); /* Estado General - verde */
 }
 
 .detalle-linea .label {
   font-weight: 600;
-  color: #555;
+  color: var(--text-secondary);
   min-width: 120px;
   font-size: 0.9rem;
 }
 
 .detalle-linea .valor {
   flex: 1;
-  color: #222;
+  color: var(--text-primary);
   font-size: 0.95rem;
   font-weight: 500;
 }
 
 .dni-parentesis {
-  color: #999;
+  color: var(--text-secondary);
   font-weight: normal;
   font-size: 0.9rem;
 }
@@ -686,11 +694,41 @@ header p {
 .badge-estado {
   display: inline-block;
   padding: 4px 12px;
-  background: #d4edda;
-  color: #155724;
-  border-radius: 15px;
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--success);
+  border: 1px solid var(--success);
+  border-radius: var(--radius-full);
   font-size: 0.85rem;
   font-weight: 600;
+}
+
+/* Spinner de carga del audio */
+.audio-loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  gap: 20px;
+}
+
+.audio-spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid var(--border-light);
+  border-top: 4px solid var(--primary-main);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.audio-loading-text {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 @media (max-width: 1600px) {
