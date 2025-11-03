@@ -18,8 +18,8 @@
   --text-white: #ffffff;        /* Texto blanco */
   
   /* Gradiente de fondo suave */
-  --bg-gradient-from: #f8fafc;  /* slate-50 */
-  --bg-gradient-to: #eff6ff;    /* blue-50 */
+  --bg-gradient-from: #eff6ff;  /* Gris muy claro (más suave) */
+  --bg-gradient-to: #f8fafc;    /* Azul muy muy claro (más suave) */
   
   --bg-main: #f9fafb;           /* Fondo principal */
   --bg-card: #ffffff;           /* Fondo de tarjetas */

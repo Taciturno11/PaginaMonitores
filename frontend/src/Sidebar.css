@@ -1,13 +1,15 @@
 .sidebar {
-  background: var(--primary-dark);
+/* Un gradiente hacia abajo (to bottom) que va de blanco a un rosa/naranja casi imperceptible, aún más reducido */
+background: linear-gradient(to bottom, #FFFFFF 0%, #FFFDFD 50%, #FFFCFB 100%);
   height: 100vh;
   position: sticky;
   top: 0;
   transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   flex-direction: column;
-  color: var(--text-white);
+  color: var(--text-primary);
   box-shadow: var(--shadow-xl);
+  border-right: 1px solid var(--border-medium);
   z-index: 100;
 }
 
@@ -24,7 +26,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid var(--border-light);
   min-height: 80px;
 }
 
@@ -38,7 +40,7 @@
 .sidebar-logo img {
   width: 42px;
   height: 42px;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--primary-bg);
   padding: 8px;
   border-radius: var(--radius-md);
   flex-shrink: 0;
@@ -47,15 +49,15 @@
 .sidebar-logo span {
   font-size: 1.4rem;
   font-weight: 700;
-  color: var(--text-white);
+  color: var(--primary-dark);
   letter-spacing: -0.5px;
   white-space: nowrap;
 }
 
 .sidebar-toggle {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: var(--text-white);
+  background: var(--bg-hover);
+  border: 1px solid var(--border-light);
+  color: var(--text-primary);
   font-size: 1.2rem;
   width: 38px;
   height: 38px;
@@ -71,7 +73,7 @@
 
 .sidebar-toggle svg,
 .sidebar-toggle .iconify {
-  color: var(--text-white) !important;
+  color: var(--text-primary) !important;
   width: 22px !important;
   height: 22px !important;
   min-width: 22px !important;
@@ -81,7 +83,8 @@
 }
 
 .sidebar-toggle:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--primary-bg);
+  border-color: var(--primary-main);
   transform: scale(1.05);
 }
 
@@ -96,7 +99,7 @@
 .sidebar-item {
   background: transparent;
   border: none;
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--text-primary);
   padding: 14px 16px;
   border-radius: var(--radius-md);
   display: flex;
@@ -113,16 +116,16 @@
 }
 
 .sidebar-item:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: var(--text-white);
+  background: rgba(255, 255, 255, 0.6);
+  color: var(--primary-main);
   transform: translateX(4px);
 }
 
 .sidebar-item.activo {
-  background: rgba(255, 255, 255, 0.15);
+  background: linear-gradient(135deg, var(--primary-main), var(--primary-light));
   font-weight: 600;
   color: var(--text-white);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(21, 140, 140, 0.3);
 }
 
 .sidebar-item.activo::before {
@@ -143,7 +146,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  color: rgba(255, 255, 255, 0.9);
+  color: currentColor;
   flex-shrink: 0;
 }
 
@@ -184,14 +187,15 @@
 /* Sidebar Footer con botón de logout */
 .sidebar-footer {
   padding: 1rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid var(--border-medium);
   margin-top: auto;
+  background: rgba(0, 0, 0, 0.02);
 }
 
 .sidebar-logout {
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: rgba(255, 255, 255, 0.9);
+  background: rgba(239, 68, 68, 0.08);
+  border: 2px solid rgba(239, 68, 68, 0.3);
+  color: var(--error);
   padding: 14px 16px;
   border-radius: var(--radius-md);
   display: flex;
@@ -200,25 +204,26 @@
   cursor: pointer;
   transition: all 0.2s ease;
   font-size: 0.95rem;
-  font-weight: 500;
+  font-weight: 600;
   text-align: left;
   width: 100%;
   white-space: nowrap;
 }
 
 .sidebar-logout:hover {
-  background: rgba(239, 68, 68, 0.15);
+  background: var(--error);
   border-color: var(--error);
   color: var(--text-white);
   transform: translateX(4px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
 }
 
 .sidebar-logout .sidebar-icono {
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--error);
 }
 
 .sidebar-logout:hover .sidebar-icono {
-  color: var(--error);
+  color: var(--text-white);
 }
 
 .sidebar-colapsado .sidebar-logout {
