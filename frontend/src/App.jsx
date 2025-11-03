@@ -721,6 +721,63 @@ function App() {
               onCerrar={() => setMostrarEncuesta(false)}
             />
           )}
+
+          {/* Reproductor de audio - Placeholder cuando no hay llamada */}
+          {!llamada && (
+            <div className="audio-player-container audio-placeholder">
+              <h3>
+                <Icon icon="mdi:music-note-off" style={{marginRight: '8px'}} />
+                Audio de la Llamada
+              </h3>
+              <div className="audio-empty-state">
+                <Icon icon="mdi:volume-mute" className="audio-empty-icon" />
+                <p className="audio-empty-text">
+                  Presiona <strong>"Obtener Llamada Aleatoria"</strong> para cargar el audio de la llamada
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Reproductor de audio - Con llamada activa */}
+          {llamada && (
+            <div className="audio-player-container">
+              <h3>
+                <Icon icon="mdi:play-circle" style={{marginRight: '8px'}} />
+                Audio de la Llamada
+              </h3>
+              {audioCargando ? (
+                <div className="audio-loading-container">
+                  <div className="audio-spinner"></div>
+                  <div className="audio-loading-text">
+                    Cargando audio...
+                  </div>
+                </div>
+              ) : (
+                <audio 
+                  controls 
+                  preload="none" 
+                  className="audio-player"
+                  onError={(e) => {
+                    console.error('Error al cargar audio:', e);
+                    console.error('URL que falló:', e.target.src);
+                  }}
+                  onLoadStart={() => console.log('Iniciando carga del audio...')}
+                  onLoadedData={() => console.log('Audio cargado correctamente')}
+                  onCanPlay={() => console.log('Audio listo para reproducir')}
+                >
+                  {llamada.Campaña_Agente === 'Unificado' ? (
+                    <source src={`${API_URL}/audio/test-audio-33-converted.mp3`} type="audio/mpeg" />
+                  ) : (
+                    <>
+                      <source src={`${API_URL}/audio/test-audio-1-converted.mp3`} type="audio/mpeg" />
+                      <source src={`${API_URL}/audio/test-audio-2-converted.mp3`} type="audio/mpeg" />
+                    </>
+                  )}
+                  Tu navegador no soporta el elemento de audio.
+                </audio>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="results-area">
@@ -743,45 +800,6 @@ function App() {
                   <Icon icon="mdi:phone" style={{marginRight: '8px'}} />
                   Detalle de la Llamada
                 </h2>
-              
-                {/* Reproductor de audio */}
-                <div className="audio-player-container">
-                  <h3>
-                    <Icon icon="mdi:play-circle" style={{marginRight: '8px'}} />
-                    Audio de la Llamada
-                  </h3>
-                  {audioCargando ? (
-                    <div className="audio-loading-container">
-                      <div className="audio-spinner"></div>
-                      <div className="audio-loading-text">
-                        Cargando audio...
-                      </div>
-                    </div>
-                  ) : (
-                    <audio 
-                      controls 
-                      preload="none" 
-                      className="audio-player"
-                      onError={(e) => {
-                        console.error('Error al cargar audio:', e);
-                        console.error('URL que falló:', e.target.src);
-                      }}
-                      onLoadStart={() => console.log('Iniciando carga del audio...')}
-                      onLoadedData={() => console.log('Audio cargado correctamente')}
-                      onCanPlay={() => console.log('Audio listo para reproducir')}
-                    >
-                      {llamada.Campaña_Agente === 'Unificado' ? (
-                        <source src={`${API_URL}/audio/test-audio-33-converted.mp3`} type="audio/mpeg" />
-                      ) : (
-                        <>
-                          <source src={`${API_URL}/audio/test-audio-1-converted.mp3`} type="audio/mpeg" />
-                          <source src={`${API_URL}/audio/test-audio-2-converted.mp3`} type="audio/mpeg" />
-                        </>
-                      )}
-                      Tu navegador no soporta el elemento de audio.
-                    </audio>
-                  )}
-                </div>
               
                 <div className="detalle-lineas">
                   <div className="detalle-seccion">

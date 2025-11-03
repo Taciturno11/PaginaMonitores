@@ -8,7 +8,7 @@ svg {
 .app-layout {
   display: flex;
   min-height: 100vh;
-  background-color: var(--bg-main);
+  background: linear-gradient(135deg, var(--bg-gradient-from) 0%, var(--bg-gradient-to) 100%);
 }
 
 .main-content {
@@ -16,6 +16,7 @@ svg {
   display: flex;
   flex-direction: column;
   overflow-x: hidden;
+  background: transparent;
 }
 
 .modulo-container {
@@ -223,6 +224,7 @@ header p {
   align-items: start;
 }
 
+/* Columna izquierda - Contenedor de filtros */
 .filtros-container {
   background: var(--primary-5);
   padding: 24px;
@@ -232,6 +234,58 @@ header p {
   display: flex;
   flex-direction: column;
   gap: 20px;
+}
+
+/* Audio player ahora en columna izquierda */
+.audio-player-container {
+  background: var(--bg-card);
+  padding: 20px;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-light);
+}
+
+.audio-player-container h3 {
+  margin: 0 0 15px 0;
+  color: var(--text-primary);
+  font-size: 1.1rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+}
+
+/* Estado vacío del audio player */
+.audio-player-container.audio-placeholder {
+  background: var(--bg-hover);
+  border: 2px dashed var(--border-light);
+}
+
+.audio-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  gap: 15px;
+  text-align: center;
+}
+
+.audio-empty-icon {
+  font-size: 3.5rem;
+  color: var(--text-secondary);
+  opacity: 0.5;
+}
+
+.audio-empty-text {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.audio-empty-text strong {
+  color: var(--primary-main);
+  font-weight: 600;
 }
 
 .filtros-header {
@@ -506,24 +560,6 @@ header p {
   padding-bottom: 10px;
   font-size: 1.5rem;
   margin-bottom: 20px;
-  display: flex;
-  align-items: center;
-}
-
-.audio-player-container {
-  background: var(--bg-card);
-  padding: 12px 15px;
-  border-radius: var(--radius-lg);
-  margin-bottom: 20px;
-  box-shadow: var(--shadow-sm);
-  border: 1px solid var(--border-light);
-}
-
-.audio-player-container h3 {
-  margin: 0 0 10px 0;
-  color: var(--text-primary);
-  font-size: 1rem;
-  font-weight: 600;
   display: flex;
   align-items: center;
 }

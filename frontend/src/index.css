@@ -17,6 +17,10 @@
   --text-light: #9ca3af;        /* Texto claro */
   --text-white: #ffffff;        /* Texto blanco */
   
+  /* Gradiente de fondo suave */
+  --bg-gradient-from: #f8fafc;  /* slate-50 */
+  --bg-gradient-to: #eff6ff;    /* blue-50 */
+  
   --bg-main: #f9fafb;           /* Fondo principal */
   --bg-card: #ffffff;           /* Fondo de tarjetas */
   --bg-hover: #f3f4f6;          /* Hover states */
@@ -41,7 +45,7 @@
 
   color-scheme: light;
   color: var(--text-primary);
-  background-color: var(--bg-main);
+  background: linear-gradient(135deg, var(--bg-gradient-from) 0%, var(--bg-gradient-to) 100%);
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
